@@ -1,5 +1,6 @@
 import math
 import random
+import pgzero
 from pygame import Rect
 import pgzrun
 from pgzhelper import *
@@ -74,9 +75,8 @@ config = {
             "effects_volume": 0.5,
             "screen_opt": 0,
          }
-# SCAL = 2
-# CELL_SIZE = Actor(loading_images(DIR_TEXTURES + "stone_tile_", 1)[0], (0, 0),(0, 0)).height * SCAL
-CELL_SIZE = Actor(loading_images(DIR_TEXTURES + "stone_tile_", 1)[0], (0, 0),(0, 0)).height
+SCAL = 2
+CELL_SIZE = Actor(loading_images(DIR_TEXTURES + "stone_tile_", 1)[0], (0, 0),(0, 0)).height * SCAL
 resolution_options = ["800x600", "1024x768", "1280x720"]
 SCRENN_OPT = config["screen_opt"]
 resolution = resolution_options[SCRENN_OPT].split("x")
@@ -114,7 +114,7 @@ class Map:
     # Randomizar grama
     def get_random_grass(self):
         GRASS_TILE = Actor(random.choice(loading_images(DIR_TEXTURES + "grass_tile_", 4)), (0, 0),(0, 0))
-        # GRASS_TILE.scale = SCAL
+        GRASS_TILE.scale = SCAL
         return GRASS_TILE
     # Desenhar Mapa
     def draw_map(self):
@@ -128,7 +128,7 @@ class Map:
                     self.map_tiles.append(GRASS_TILE)
                 elif tile == 1:
                     STONE_TILE = Actor(loading_images(DIR_TEXTURES + "stone_tile_", 1)[0], (0, 0),(0, 0))
-                    # STONE_TILE.scale = SCAL
+                    STONE_TILE.scale = SCAL
                     STONE_TILE.x = x * STONE_TILE.height
                     STONE_TILE.y = y * STONE_TILE.width
                     self.map_tiles.append(STONE_TILE)
