@@ -1,1 +1,1 @@
-{"music_volume": 0.005, "effects_volume": 0.29, "screen_opt": 2}
+{"music_volume": 0.0, "effects_volume": 1.0, "screen_opt": 1}
