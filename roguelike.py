@@ -1,6 +1,8 @@
 import math
 import random
 import pgzero
+import pgzero.music
+import pgzero.soundfmt
 from pygame import Rect
 import pgzrun
 from pgzhelper import *
@@ -467,6 +469,7 @@ class Game:
         self.damage_cooldown = .001  # Cooldown entre danos
         self.shoot_cadence = 1
         self.shoot_cooldown = 1
+        self.sound_playng = False
         
 
     def draw_menu(self):
@@ -706,38 +709,53 @@ class Game:
 
     def keybord_press(self):
         if self.charging:
-            move_pixel = .05
+            move_pixel = 0
         else:
             move_pixel = .1
 
         if (keyboard.LEFT or keyboard.A) and (keyboard.UP or keyboard.W):
-            self.animation = True
             self.player.move(-move_pixel, -move_pixel)
         elif (keyboard.LEFT or keyboard.A) and (keyboard.DOWN or keyboard.S):
-            self.animation = True
             self.player.move(-move_pixel, move_pixel)
         elif (keyboard.RIGHT or keyboard.D) and (keyboard.UP or keyboard.W):
-            self.animation = True
             self.player.move(move_pixel, -move_pixel)
         elif (keyboard.RIGHT or keyboard.D) and (keyboard.DOWN or keyboard.S):
-            self.animation = True
             self.player.move(move_pixel, move_pixel)
         elif (keyboard.LEFT or keyboard.A):
-            self.animation = True
             self.player.move(-move_pixel, 0)
         elif (keyboard.RIGHT or keyboard.D):
-            self.animation = True
             self.player.move(move_pixel, 0)
         elif (keyboard.UP or keyboard.W):
-            self.animation = True
             self.player.move(0, -move_pixel)
         elif (keyboard.DOWN or keyboard.S):
-            self.animation = True
             self.player.move(0, move_pixel)
         elif keyboard.ESCAPE:
             self.status = STATE_PAUSED
             pgzero.music.pause()
             self.paused = True
+
+        if self.charging:
+            getattr(sounds, "walking").set_volume(self.effects_volume * 0.5) 
+        else:
+            getattr(sounds, "walking").set_volume(self.effects_volume) 
+
+        move_keys = True in [keyboard.LEFT, keyboard.RIGHT, keyboard.UP, keyboard.DOWN, keyboard.A, keyboard.D, keyboard.W, keyboard.S]
+        if move_keys and (self.sound_playng == False):
+            self.sound_playng = True
+            getattr(sounds, "walking").play()
+        elif not move_keys and self.sound_playng == True:
+            self.sound_playng = False
+            getattr(sounds, "walking").stop()
+
+        if self.charging:
+            self.set_player_frames(loading_images(game.player_selected + DIR_ATTACK + dir_sprite, 5 if horizontal else 4), game.animation_speed + 0.1)
+        elif not move_keys and not self.charging:
+            self.animation = True
+            self.set_player_frames(loading_images(self.player_selected + DIR_WAITING + dir_sprite, 2 if dir_sprite == DIR_DOWN else 4), self.animation_speed + 0.3)
+        elif move_keys and not self.charging:
+            self.animation = True
+            self.set_player_frames(loading_images(self.player_selected + DIR_WALKING + dir_sprite, 6), self.animation_speed)
+
         # if mouse.LEFT:
         #     self.animation = True
 
@@ -789,6 +807,7 @@ class Game:
         if self.charging:
             self.charging = False
             self.shoot_projectile(MOUSE_POS)
+            getattr(sounds, ARROW_SOUDS[0]).stop()
             getattr(sounds, ARROW_SOUDS[1]).play()
             self.player.tile.image = self.player.frames[1]
         elif len(self.projectiles) > 0:
@@ -880,9 +899,6 @@ def on_key_down(key):
             game.draw_hitbox = not game.draw_hitbox
         if key == keys.SPACE:
             game.atack_pressed()
-        move_keys = [keys.LEFT, keys.RIGHT, keys.UP, keys.DOWN, keys.A, keys.D, keys.W, keys.S]
-        if key in move_keys:
-            getattr(sounds, "walking").play()
 
 def on_key_up(key):
     if game.status == STATE_PLAYING:
@@ -890,26 +906,18 @@ def on_key_up(key):
         if key == keys.SPACE:
             if game.charging:
                 game.atack_pressed()
-        move_keys = [keys.LEFT, keys.RIGHT, keys.UP, keys.DOWN, keys.A, keys.D, keys.W, keys.S]
-        if key in move_keys:
-            getattr(sounds, "walking").stop()
 
 
 def update(dt):
+    global dir_sprite, horizontal
     if game.status == STATE_PLAYING:
         if not game.freeze_mode:
             horizontal = abs(MOUSE_POS[0] - game.player.tile.x) > abs(MOUSE_POS[1] - game.player.tile.y)
             if horizontal:
                 dir_sprite = DIR_SIDE
-                flip_x = MOUSE_POS[0] < game.player.tile.x
+                game.player.tile.flip_x = flip_x = MOUSE_POS[0] < game.player.tile.x
             else:
                 dir_sprite = DIR_DOWN if MOUSE_POS[1] > game.player.tile.y else DIR_UP
-            if game.charging:
-                game.set_player_frames(loading_images(game.player_selected + DIR_ATTACK + dir_sprite, 5 if horizontal else 4), game.animation_speed)
-            else:
-                game.set_player_frames(loading_images(game.player_selected + DIR_WALKING + dir_sprite, 6), game.animation_speed)
-            if horizontal:
-                game.player.tile.flip_x = flip_x
             game.draw_playing(dt)
 
 
@@ -941,3 +949,5 @@ def draw():
 # Inicialização rápida do jogo
 game = Game()
 pgzrun.go()
+
+# Adicionar variavel para guardar estado se esta tocando o som de andar para assim verificar se esta tocando antes de chamar o play novamente
