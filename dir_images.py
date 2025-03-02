@@ -21,36 +21,6 @@ DIR_SIDE = "side/"
 DIR_TEXTURES = "textures/"
 DIR_WEAPONS = "weapons/"
 
-# IMAGES = [""]
-# NUMB = 0
-
-# class Directions:
-#     UP = "up/"
-#     DOWN = "down/"
-#     SIDE = "side/"
-#     def dir_text():
-#         return Directions
-
-# class Actions:
-#     ATTACK = "attack/"
-#     WAITING = "waiting/"
-#     WALKING = "walking/"
-#     DIRECTIONS = Directions
-
-# class Characters:
-#     GIRL_1 = "girl_1/"
-#     GIRL_2 = "girl_2/"
-#     BOY = "boy/"
-#     ENEMY = "enemy/"
-#     actions = Actions
-
-
-# class Dir:
-#     PLAYER = "player/"
-#     TEXTURES = "textures/"
-#     WEAPONS = "weapons/"
-#     characters = Characters
-
 class Dir:
     class Textures:
         DIR = DIR_TEXTURES
@@ -62,65 +32,66 @@ class Dir:
         class Player:
             DIR = DIR_PLAYER
             class Girl1:
-                DIR = DIR_GIRL_1
+                DIR = DIR_PLAYER + DIR_GIRL_1
                 class Attack:
-                    DIR = DIR_ATTACK
-                    UP = DIR_UP
-                    DOWN = DIR_DOWN
-                    SIDE = DIR_SIDE
+                    DIR = DIR_PLAYER + DIR_GIRL_1 + DIR_ATTACK
+                    UP = DIR + DIR_UP
+                    DOWN = DIR + DIR_DOWN
+                    SIDE = DIR + DIR_SIDE
 
                 class Waiting:
-                    DIR = DIR_WAITING
-                    UP = DIR_UP
-                    DOWN = DIR_DOWN
-                    SIDE = DIR_SIDE
+                    DIR = DIR_PLAYER + DIR_GIRL_1 + DIR_WAITING
+                    UP = DIR + DIR_UP
+                    DOWN = DIR + DIR_DOWN
+                    SIDE = DIR + DIR_SIDE
 
                 class Walking:
-                    DIR = DIR_WALKING
-                    UP = DIR_UP
-                    DOWN = DIR_DOWN
-                    SIDE = DIR_SIDE
+                    DIR = DIR_PLAYER + DIR_GIRL_1 + DIR_WALKING
+                    UP = DIR + DIR_UP
+                    DOWN = DIR + DIR_DOWN
+                    SIDE = DIR + DIR_SIDE
             class Girl2:
-                DIR = DIR_GIRL_2
+                DIR = DIR_PLAYER + DIR_GIRL_2
                 class Attack:
-                    DIR = DIR_ATTACK
-                    UP = DIR_UP
-                    DOWN = DIR_DOWN
-                    SIDE = DIR_SIDE
+                    DIR = DIR_PLAYER + DIR_GIRL_2 + DIR_ATTACK
+                    UP = DIR + DIR_UP
+                    DOWN = DIR + DIR_DOWN
+                    SIDE = DIR + DIR_SIDE
 
                 class Waiting:
-                    DIR = DIR_WAITING
-                    UP = DIR_UP
-                    DOWN = DIR_DOWN
-                    SIDE = DIR_SIDE
+                    DIR = DIR_PLAYER + DIR_GIRL_2 + DIR_WAITING
+                    UP = DIR + DIR_UP
+                    DOWN = DIR + DIR_DOWN
+                    SIDE = DIR + DIR_SIDE
 
                 class Walking:
-                    DIR = DIR_WALKING
-                    UP = DIR_UP
-                    DOWN = DIR_DOWN
-                    SIDE = DIR_SIDE
+                    DIR = DIR_PLAYER + DIR_GIRL_2 + DIR_WALKING
+                    UP = DIR + DIR_UP
+                    DOWN = DIR + DIR_DOWN
+                    SIDE = DIR + DIR_SIDE
             class Boy:
-                DIR = DIR_BOY
+                DIR = DIR_PLAYER + DIR_BOY
 
                 class Attack:
-                    DIR = DIR_ATTACK
-                    UP = DIR_UP
-                    DOWN = DIR_DOWN
-                    SIDE = DIR_SIDE
+                    DIR = DIR_PLAYER + DIR_BOY + DIR_ATTACK
+                    UP = DIR + DIR_UP
+                    DOWN = DIR + DIR_DOWN
+                    SIDE = DIR + DIR_SIDE
 
                 class Waiting:
-                    DIR = DIR_WAITING
-                    UP = DIR_UP
-                    DOWN = DIR_DOWN
-                    SIDE = DIR_SIDE
+                    DIR = DIR_PLAYER + DIR_BOY + DIR_WAITING
+                    UP = DIR + DIR_UP
+                    DOWN = DIR + DIR_DOWN
+                    SIDE = DIR + DIR_SIDE
 
                 class Walking:
-                    DIR = DIR_WALKING
-                    UP = DIR_UP
-                    DOWN = DIR_DOWN
-                    SIDE = DIR_SIDE
+                    DIR = DIR_PLAYER + DIR_BOY + DIR_WALKING
+                    UP = DIR + DIR_UP
+                    DOWN = DIR + DIR_DOWN
+                    SIDE = DIR + DIR_SIDE
 
-print(Dir.Characters.Player.Girl1.Attack.DIR)
+print(Dir.Characters.Player.Boy.Attack.UP)
+
 # Classe Projétil
 class Player:
     def __init__(self ,main ,type  = "", action  = "", direction  = "", frames = 0, string = ""):
@@ -158,7 +129,7 @@ class Player:
         elif self.main == DIR_WEAPONS:
             self.frames = 2
             self.dir = self.main + self.dir
-
+        self.animation_time = 1 / self.frames
     def string_list(self):
         global NUMB
         if NUMB != self.frames:

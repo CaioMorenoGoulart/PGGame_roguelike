@@ -141,26 +141,3 @@ class Actions:
 #                     UP = DIR_UP
 #                     DOWN = DIR_DOWN
 #                     SIDE = DIR_SIDE
-
-# print(Dir1.Characters.Player.Girl1.DIR)
-
-# class Dir1:
-#     class Textures:
-#         DIR = DIR_TEXTURES
-#     class Weapons:
-#         DIR = DIR_WEAPONS
-#     class Players:
-#         DIR = DIR_PLAYER
-#         class Characters:
-#             GIRL_1 = DIR_GIRL_1
-#             GIRL_2 = DIR_GIRL_2
-#             BOY = DIR_BOY
-#             ENEMY = DIR_ENEMY
-#             class Actions:
-#                 ATTACK = DIR_ATTACK
-#                 WAITING = DIR_WAITING
-#                 WALKING = DIR_WALKING
-#                 class Directions:
-#                     UP = DIR_UP
-#                     DOWN = DIR_DOWN
-#                     SIDE = DIR_SIDE
