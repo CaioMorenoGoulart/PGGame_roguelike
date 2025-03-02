@@ -1,8 +1,7 @@
 import math
 import random
 import pgzero
-import pgzero.music
-import pgzero.soundfmt
+from dir_images import Player, Dir
 from pygame import Rect
 import pgzrun
 from pgzhelper import *
@@ -49,8 +48,6 @@ def string_list(number):
 
 
 IMAGES = [""]
-
-
 def loading_images(dir_string, frames):
     global IMAGES
     if IMAGES != [dir_string + image for image in string_list(frames)]:
@@ -735,7 +732,7 @@ class Game:
             self.paused = True
 
         if self.charging:
-            getattr(sounds, "walking").set_volume(self.effects_volume * 0.5) 
+            getattr(sounds, "walking").stop()
         else:
             getattr(sounds, "walking").set_volume(self.effects_volume) 
 
@@ -743,21 +740,18 @@ class Game:
         if move_keys and (self.sound_playng == False):
             self.sound_playng = True
             getattr(sounds, "walking").play()
-        elif not move_keys and self.sound_playng == True:
+        elif not move_keys and self.sound_playng == True or self.charging:
             self.sound_playng = False
             getattr(sounds, "walking").stop()
 
         if self.charging:
-            self.set_player_frames(loading_images(game.player_selected + DIR_ATTACK + dir_sprite, 5 if horizontal else 4), game.animation_speed + 0.1)
+            self.set_player_frames(Player(DIR_PLAYER , DIR_GIRL_1, DIR_ATTACK, dir_sprite).images, self.animation_speed + 0.1)
         elif not move_keys and not self.charging:
             self.animation = True
-            self.set_player_frames(loading_images(self.player_selected + DIR_WAITING + dir_sprite, 2 if dir_sprite == DIR_DOWN else 4), self.animation_speed + 0.3)
+            self.set_player_frames(Player(DIR_PLAYER , DIR_GIRL_1, DIR_WAITING, dir_sprite).images, self.animation_speed + 0.3)
         elif move_keys and not self.charging:
             self.animation = True
-            self.set_player_frames(loading_images(self.player_selected + DIR_WALKING + dir_sprite, 6), self.animation_speed)
-
-        # if mouse.LEFT:
-        #     self.animation = True
+            self.set_player_frames(Player(DIR_PLAYER , DIR_GIRL_1, DIR_WALKING, dir_sprite).images, self.animation_speed)
 
 
     def set_player_frames(self, frames, time):
@@ -919,7 +913,8 @@ def update(dt):
             else:
                 dir_sprite = DIR_DOWN if MOUSE_POS[1] > game.player.tile.y else DIR_UP
             game.draw_playing(dt)
-
+    else:
+        getattr(sounds, "walking").stop()
 
 def draw():
     if game.status == STATE_MENU:
@@ -944,7 +939,6 @@ def draw():
                 screen.draw.rect(Rect(enemy.hitbox), (0, 255, 0))
             for projectil in game.projectiles:
                 screen.draw.rect(Rect(projectil.tile.x, projectil.tile.y, projectil.tile.width, projectil.tile.height), (0, 0, 255))
-
 
 # Inicialização rápida do jogo
 game = Game()
