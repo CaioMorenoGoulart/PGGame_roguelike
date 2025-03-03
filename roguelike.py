@@ -745,7 +745,7 @@ class Game:
             getattr(sounds, "walking").stop()
 
         if self.charging:
-            self.set_player_frames(Player(DIR_PLAYER , DIR_GIRL_1, DIR_ATTACK, dir_sprite).images, self.animation_speed + 0.1)
+            self.set_player_frames(Player(DIR_PLAYER , DIR_GIRL_1, DIR_ATTACK, dir_sprite).images, Player(DIR_PLAYER , DIR_GIRL_1, DIR_ATTACK, dir_sprite).animation_time)
         elif not move_keys and not self.charging:
             self.animation = True
             self.set_player_frames(Player(DIR_PLAYER , DIR_GIRL_1, DIR_WAITING, dir_sprite).images, self.animation_speed + 0.3)

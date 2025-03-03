@@ -90,7 +90,7 @@ class Dir:
                     DOWN = DIR + DIR_DOWN
                     SIDE = DIR + DIR_SIDE
 
-print(Dir.Characters.Player.Boy.Attack.UP)
+print(Dir.Characters.Player.Boy.Attack.SIDE)
 
 # Classe Projétil
 class Player:

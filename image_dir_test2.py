@@ -49,7 +49,7 @@ class Players(Dir):
 class Characters(Players):
     def __init__(self):
         super().__init__()
-            self.DIR += 
+        self.DIR 
 
 class Actions(Characters):
     def __init__(self):
