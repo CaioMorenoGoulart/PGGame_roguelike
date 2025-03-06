@@ -47,6 +47,7 @@ HEALTH_COLOR = (0, 255, 0)
 # Configurações iniciais
 
 ARROW_SOUDS = ["arrow_1", "arrow_2", "arrow_3", "arrow_4"]
+WOOSH_SOUDS = ["woosh_01", "woosh_02", "woosh_03", "woosh_04", "woosh_05"]
 CONFIG = load_settings()
 SCAL = 2
 CELL_SIZE = Actor("textures/stone_tile_1", (0, 0), (0, 0)).height * SCAL

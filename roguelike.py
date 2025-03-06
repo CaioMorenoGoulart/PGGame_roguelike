@@ -100,13 +100,28 @@ class Entity:
         if self.hit_cooldown == 0:
             new_x = self.tile.x + x * CELL_SIZE
             new_y = self.tile.y + y * CELL_SIZE
-            if CELL_SIZE < (new_x - self.tile.height / 2) < (COLUMNS * CELL_SIZE - (CELL_SIZE + self.tile.height)) and CELL_SIZE <= (new_y - (self.tile.width / 2)) < (ROWS * CELL_SIZE - (CELL_SIZE + self.tile.width)):
+            if CELL_SIZE <= (new_x - self.tile.height / 2) <= (COLUMNS * CELL_SIZE - (CELL_SIZE + self.tile.height)) and CELL_SIZE <= (new_y - (self.tile.width / 2)) <= (ROWS * CELL_SIZE - (CELL_SIZE + self.tile.width)):
                 if self.tile != game.player.tile:
                     animate(self.tile, pos=(new_x, new_y), duration=0.05)
                     self.animation = True
                 else:
-                    animate(self.tile, pos=(new_x, new_y), duration=0.01)
+                    if game.player_skill_timer == 0:
+                        animate(self.tile, pos=(new_x, new_y), duration=0.1)
+                    else:
+                        animate(self.tile, pos=(new_x, new_y), duration=0.01)
+            else:
+                # Deslisar pela parede
+                if game.player_skill_timer == 0:
+                    if CELL_SIZE > (new_x - self.tile.height / 2):
+                        new_x = CELL_SIZE + self.tile.width
+                    if (new_x - self.tile.height / 2) > (COLUMNS * CELL_SIZE - (CELL_SIZE + self.tile.height)):
+                        new_x = WIDTH - (CELL_SIZE + self.tile.width)
+                    if CELL_SIZE >= (new_y - (self.tile.width / 2)):
+                        new_y = CELL_SIZE + self.tile.height / 2
+                    if (new_y - (self.tile.width / 2)) > (ROWS * CELL_SIZE - (CELL_SIZE + self.tile.width)):
+                        new_y = HEIGHT - (CELL_SIZE + self.tile.height)
 
+                    animate(self.tile, pos=(new_x,new_y), duration=0.1)
 
 # Classe Projétil
 class Projectile:
@@ -128,7 +143,7 @@ class Projectile:
 
         if self.speed > 0:
             if self.offscreen():
-                getattr(sounds, ARROW_SOUDS[3]).play()
+                game.play_sound_volume(ARROW_SOUDS[3])
                 self.hit(dt)
         else:
             if self.speed == 0:
@@ -357,8 +372,10 @@ class Game:
         self.shoot_cadence = 1
         self.shoot_cooldown = 1
         self.sound_playng = False
-        
-
+    
+    def play_sound_volume(self, sound, vol = 1):
+        getattr(sounds, sound).set_volume(game.effects_volume * vol)
+        getattr(sounds, sound).play()
     def draw_menu(self):
         for button in self.screens.menu():
             button.draw(MOUSE_POS)
@@ -509,8 +526,7 @@ class Game:
                 enemy.tile.scale = 2
                 if enemy.state != ENTITY_EXPLOSION:
                     enemy.state = ENTITY_EXPLOSION
-                    getattr(sounds, "explosion").set_volume(game.effects_volume)  
-                    getattr(sounds, "explosion").play()
+                    self.play_sound_volume("explosion", 1.5)
                     enemy.frames = Set_images(string= Dir_images.Characters.Player.Enemy.dir + "bomb/bomb_", n_frames= 4).images
 
             if enemy.hit_cooldown > self.enemy_remove_interval:
@@ -521,7 +537,7 @@ class Game:
                     if projectile.tile.colliderect(enemy.tile):
                         enemy.state = ENTITY_HIT
                         enemy.hit_cooldown += dt
-                        getattr(sounds, ARROW_SOUDS[2]).play()
+                        self.play_sound_volume(ARROW_SOUDS[2])
                         projectile.hit(dt)
                         enemy.frames = Set_images(string= Dir_images.Characters.Player.Enemy.dir + "enemi_dead_", n_frames= 2).images
 
@@ -600,33 +616,35 @@ class Game:
             Rect(x-1, y-1, 32, 8),
             (0, 0, 0),
         )
+        
+        img_skill_cooldown = Actor(self.player_selected.Walking.Side.images[2], (250, HEIGHT - 40),(0,0))
+        img_skill_cooldown_2 = Actor(self.player_selected.Walking.Side.images[0], (img_skill_cooldown.x + img_skill_cooldown.height - 10, img_skill_cooldown.y),(0,0))
+
+        img_arrow_cooldown = Actor(Set_images(string= Dir_images.Weapons.dir + "arrow_", n_frames= 1).images[0], (240, HEIGHT - 35),(0,0))
+        img_arrow_cooldown.angle = -45
+        img_arrow_cooldown.scale = 1.75
+
+        img_skill_cooldown._surf.set_alpha(min( 255, self.player_skill_timer * 128))
+        img_skill_cooldown_2._surf.set_alpha(min( 255, self.player_skill_timer * 128))
+
         if len(self.projectiles) > 0:
             shoot = self.projectiles[len(self.projectiles) - 1]
-            # draw_text_with_border(
-            #     f"Shoot: {min(self.shoot_cooldown, shoot.shoot_spawn_cooldown):.2f}",
-            #     position=(self.player.tile.x, self.player.tile.y),
-            #     fontsize=30,
-            #     color="white",
-            #     border_color="black",
-            #     border_width=1
-            # )
+            img_arrow_cooldown._surf.set_alpha(min( 255, shoot.shoot_spawn_cooldown * 255))
             screen.draw.filled_rect(
                 Rect(x, y,  min(self.shoot_cooldown, shoot.shoot_spawn_cooldown) * 30 , 6),
                 HEALTH_COLOR,
             )
         else:
-            # draw_text_with_border(
-            #     f"Shoot: {self.shoot_cooldown:.2f}",
-            #     position=(self.player.tile.x, self.player.tile.y),
-            #     fontsize=30,
-            #     color="white",
-            #     border_color="black",
-            #     border_width=1
-            # )
+            img_arrow_cooldown._surf.set_alpha(255)
+            Actor(Set_images(string= Dir_images.Weapons.dir + "arrow_", n_frames= 1).images[0], (0,0),(0,0))
             screen.draw.filled_rect(
                 Rect(x, y,  self.shoot_cooldown * 30 , 6),
                 HEALTH_COLOR,
             )
+        img_arrow_cooldown.draw()
+        img_skill_cooldown.draw()
+        img_skill_cooldown_2.draw()
+
 
 
     def keybord_press(self):
@@ -642,37 +660,38 @@ class Game:
         if magnitude > 0:
             dx /= magnitude
             dy /= magnitude
-        if (keyboard.LEFT or keyboard.A) and (keyboard.UP or keyboard.W):
-            self.player.move(-move_pixel, -move_pixel)
-        elif (keyboard.LEFT or keyboard.A) and (keyboard.DOWN or keyboard.S):
-            self.player.move(-move_pixel, move_pixel)
-        elif (keyboard.RIGHT or keyboard.D) and (keyboard.UP or keyboard.W):
-            self.player.move(move_pixel, -move_pixel)
-        elif (keyboard.RIGHT or keyboard.D) and (keyboard.DOWN or keyboard.S):
-            self.player.move(move_pixel, move_pixel)
-        elif (keyboard.LEFT or keyboard.A):
-            self.player.move(-move_pixel, 0)
-        elif (keyboard.RIGHT or keyboard.D):
-            self.player.move(move_pixel, 0)
-        elif (keyboard.UP or keyboard.W):
-            self.player.move(0, -move_pixel)
-        elif (keyboard.DOWN or keyboard.S):
-            self.player.move(0, move_pixel)
 
-        if (keyboard.lshift):
-            if self.player_skill_timer > self.player_skill_cooldown:
-                self.player_skill_timer = 0
-                self.player.move(dx * 5, dy * 5)
+        if (keyboard.lshift) and self.player_skill_timer > self.player_skill_cooldown:
+            self.player_skill_timer = 0
+            self.play_sound_volume(random.choice(WOOSH_SOUDS), .5)
+            self.player.move(dx * 4, dy * 4)
+        
+        if self.player_skill_timer > 0.2:
+            if (keyboard.LEFT or keyboard.A) and (keyboard.UP or keyboard.W):
+                self.player.move(-move_pixel, -move_pixel)
+            elif (keyboard.LEFT or keyboard.A) and (keyboard.DOWN or keyboard.S):
+                self.player.move(-move_pixel, move_pixel)
+            elif (keyboard.RIGHT or keyboard.D) and (keyboard.UP or keyboard.W):
+                self.player.move(move_pixel, -move_pixel)
+            elif (keyboard.RIGHT or keyboard.D) and (keyboard.DOWN or keyboard.S):
+                self.player.move(move_pixel, move_pixel)
+            elif (keyboard.LEFT or keyboard.A):
+                self.player.move(-move_pixel, 0)
+            elif (keyboard.RIGHT or keyboard.D):
+                self.player.move(move_pixel, 0)
+            elif (keyboard.UP or keyboard.W):
+                self.player.move(0, -move_pixel)
+            elif (keyboard.DOWN or keyboard.S):
+                self.player.move(0, move_pixel)
+
         
         if self.charging:
             getattr(sounds, "walking").stop()
-        else:
-            getattr(sounds, "walking").set_volume(self.effects_volume) 
 
         move_keys = True in [keyboard.LEFT, keyboard.RIGHT, keyboard.UP, keyboard.DOWN, keyboard.A, keyboard.D, keyboard.W, keyboard.S]
         if move_keys and (self.sound_playng == False):
             self.sound_playng = True
-            getattr(sounds, "walking").play()
+            self.play_sound_volume("walking")
         elif not move_keys and self.sound_playng == True or self.charging:
             self.sound_playng = False
             getattr(sounds, "walking").stop()
@@ -741,7 +760,7 @@ class Game:
             self.charging = False
             self.shoot_projectile(MOUSE_POS)
             getattr(sounds, ARROW_SOUDS[0]).stop()
-            getattr(sounds, ARROW_SOUDS[1]).play()
+            self.play_sound_volume(ARROW_SOUDS[1])
             self.player.tile.image = self.player.frames[1]
         elif len(self.projectiles) > 0:
             if self.projectiles[len(self.projectiles) - 1].shoot_spawn_cooldown > self.shoot_cooldown:
@@ -749,13 +768,13 @@ class Game:
                 self.charging = True
                 self.set_player_frames(Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.ATTACK, dir_sprite).images, Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.ATTACK, dir_sprite).animation_time)
                 self.charging_time = 0
-                getattr(sounds, ARROW_SOUDS[0]).play()
+                self.play_sound_volume(ARROW_SOUDS[0])
         else:
             self.animation = True
             self.charging = True
             self.set_player_frames(Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.ATTACK, dir_sprite).images, Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.ATTACK, dir_sprite).animation_time)
             self.charging_time = 0
-            getattr(sounds, ARROW_SOUDS[0]).play()
+            self.play_sound_volume(ARROW_SOUDS[0])
 
 
     def exit(self):
