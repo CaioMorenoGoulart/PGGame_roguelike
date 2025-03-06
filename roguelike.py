@@ -658,10 +658,6 @@ class Game:
             self.player.move(0, -move_pixel)
         elif (keyboard.DOWN or keyboard.S):
             self.player.move(0, move_pixel)
-        elif keyboard.ESCAPE:
-            self.status = STATE_PAUSED
-            pgzero.music.pause()
-            self.paused = True
 
         if (keyboard.lshift):
             if self.player_skill_timer > self.player_skill_cooldown:
@@ -836,13 +832,27 @@ def on_key_down(key):
             game.draw_hitbox = not game.draw_hitbox
         if key == keys.SPACE:
             game.atack_pressed()
-
+    if key == keys.ESCAPE:
+        if game.status == STATE_PLAYING:
+            pause_game()
+        elif game.status == STATE_PAUSED:
+            resume_game()
 def on_key_up(key):
     if game.status == STATE_PLAYING:
         game.animation = False
         if key == keys.SPACE:
             if game.charging:
                 game.atack_pressed()
+
+def resume_game():
+    game.status = STATE_PLAYING
+    pgzero.music.unpause()
+    game.paused = False
+
+def pause_game():
+    game.status = STATE_PAUSED
+    pgzero.music.pause()
+    game.paused = True
 
 
 def update(dt):
@@ -858,7 +868,6 @@ def update(dt):
             game.draw_playing(dt)
     else:
         getattr(sounds, "walking").stop()
-
 def draw():
     if game.status == STATE_MENU:
         screen.clear()
