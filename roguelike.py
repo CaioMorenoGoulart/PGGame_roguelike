@@ -1,108 +1,4 @@
-import math
-import random
-import pgzero
-from dir_images import Player, Dir
-from pygame import Rect
-import pgzrun
-from pgzhelper import *
-import json
-
-# Cores
-TEXT_COLOR = (255, 255, 255)
-HOVER_COLOR = (100, 100, 255)
-HEALTH_COLOR = (0, 255, 0)
-
-# Carregar Diretórios
-# Player
-DIR_PLAYER = "player/"
-
-# Personagens
-DIR_GIRL_1 = "girl_1/"
-DIR_GIRL_2 = "girl_2/"
-DIR_BOY = "boy/"
-DIR_ENEMY = "enemy/"
-
-# Ações
-DIR_ATTACK = "attack/"
-DIR_WAITING = "waiting/"
-DIR_WALKING = "walking/"
-
-# Direções do player
-DIR_UP = "up/"
-DIR_SIDE = "side/"
-DIR_DOWN = "down/"
-
-# Texturas
-DIR_TEXTURES = "textures/"
-DIR_WEAPONS = "weapons/"
-
-# Leitor de Sprites
-numb = 0
-
-
-def string_list(number):
-    global numb
-    if numb != number:
-        numb = [str(num) for num in range(1, number + 1)]
-    return numb
-
-
-IMAGES = [""]
-def loading_images(dir_string, frames):
-    global IMAGES
-    if IMAGES != [dir_string + image for image in string_list(frames)]:
-        IMAGES = [dir_string + image for image in string_list(frames)]
-    return [dir_string + image for image in string_list(frames)]
-
-
-# Funções para salvar e carregar configurações
-def save_settings(config):
-    with open("configuracoes.txt", "w") as file:
-        json.dump(config, file)
-
-
-def load_settings():
-    try:
-        with open("configuracoes.txt", "r") as file:
-            return json.load(file)
-    except FileNotFoundError:
-        return {
-            "music_volume": 0.5,
-            "effects_volume": 0.5,
-            "screen_opt": 0,
-        }
-
-
-# Configurações iniciais
-
-ARROW_SOUDS = ["arrow_1", "arrow_2", "arrow_3", "arrow_4"]
-CONFIG = load_settings()
-SCAL = 2
-CELL_SIZE = Actor(loading_images(DIR_TEXTURES + "stone_tile_", 1)[0], (0, 0), (0, 0)).height * SCAL
-RESOLUTION_OPTIONS = ["800x600", "1024x768", "1280x720"]
-SCRENN_OPT = CONFIG["screen_opt"]
-RESOLUTION = RESOLUTION_OPTIONS[SCRENN_OPT].split("x")
-WIDTH = int(RESOLUTION[0])
-HEIGHT = int(RESOLUTION[1])
-COLUMNS = WIDTH // CELL_SIZE
-ROWS = HEIGHT // CELL_SIZE
-
-# Estados de jogo
-STATE_PLAYING = "playing"
-STATE_MENU = "menu"
-STATE_PAUSED = "paused"
-STATE_PAUSED_CONFIG = "config_paused"
-STATE_SETTINGS = "config"
-STATE_GAME_OVER = "game_over"
-
-# Estados da entidade
-ENTITY_NEW = "new"
-ENTITY_HIT = "hit"
-ENTITY_EXPLOSION = "explosion"
-
-# Variável Global
-MOUSE_POS = (0, 0)
-
+from config import *
 
 # Criação do Mapa
 class Map:
@@ -116,7 +12,7 @@ class Map:
 
     # Randomizar grama
     def get_random_grass(self):
-        grass_tile = Actor(random.choice(loading_images(DIR_TEXTURES + "grass_tile_", 4)), (0, 0), (0, 0))
+        grass_tile = Actor(random.choice(Set_images(string = Dir_images.Textures.dir + "grass_tile_", n_frames = 4).images), (0, 0), (0, 0))
         grass_tile.scale = SCAL
         return grass_tile
 
@@ -131,7 +27,7 @@ class Map:
                     grass_tile.y = y * grass_tile.width
                     self.map_tiles.append(grass_tile)
                 elif tile == 1:
-                    stone_tile = Actor(loading_images(DIR_TEXTURES + "stone_tile_", 1)[0], (0, 0), (0, 0))
+                    stone_tile = Actor(Set_images(string= Dir_images.Textures.dir + "stone_tile_", n_frames= 1).images[0], (0, 0), (0, 0))
                     stone_tile.scale = SCAL
                     stone_tile.x = x * stone_tile.height
                     stone_tile.y = y * stone_tile.width
@@ -204,13 +100,6 @@ class Entity:
         if self.hit_cooldown == 0:
             new_x = self.tile.x + x * CELL_SIZE
             new_y = self.tile.y + y * CELL_SIZE
-            # Inimigo olhando para o player
-            if self.tile != game.player.tile:
-                if new_x > game.player.tile.x:
-                    self.tile.flip_x = True
-                else:
-                    self.tile.flip_x = False
-
             if CELL_SIZE < (new_x - self.tile.height / 2) < (COLUMNS * CELL_SIZE - (CELL_SIZE + self.tile.height)) and CELL_SIZE <= (new_y - (self.tile.width / 2)) < (ROWS * CELL_SIZE - (CELL_SIZE + self.tile.width)):
                 if self.tile != game.player.tile:
                     animate(self.tile, pos=(new_x, new_y), duration=0.05)
@@ -252,7 +141,7 @@ class Projectile:
 
     def hit(self, dt):
         self.speed = 0
-        self.tile.image = loading_images(DIR_WEAPONS + "arrow_", 2)[1]
+        self.tile.image = Set_images(string= Dir_images.Weapons.dir + "arrow_", n_frames= 2).images[1]
         self.shoot_remove_cooldown += dt
 
     def offscreen(self):
@@ -443,11 +332,12 @@ class Game:
         self.charging = False
         self.charging_time = 0
         self.animation_speed = 0.05  # Tempo entre cada frame (em segundos)
-        self.player = Entity(WIDTH // 2, HEIGHT // 2, loading_images(DIR_PLAYER + DIR_GIRL_1 + DIR_WAITING + DIR_DOWN, 2))
+        self.player = Entity(WIDTH // 2, HEIGHT // 2, Dir_images.Characters.Player.Girl1.Waiting.Down.images)
         self.enemy_animation_timer = 0  # Temporizador para a animação
         self.player_selected = ""
         self.player_animation_timer = 0
-        self.player_animation_timer = 0  # Temporizador para a animação
+        self.player_skill_timer = 0 
+        self.player_skill_cooldown = 2
         self.animation = False
         self.animation_string = ""
         self.score = 0
@@ -530,7 +420,7 @@ class Game:
 
     def start_game(self):
         self.status = STATE_PLAYING
-        self.player_selected = DIR_PLAYER + DIR_GIRL_1
+        self.player_selected = Dir_images.Characters.Player.Girl1
         self.player_health = 100
         self.score = 0
         self.enemies = []
@@ -564,7 +454,7 @@ class Game:
                 self.player.tile.y,
                 direction_x,
                 direction_y,
-                loading_images(DIR_WEAPONS + "arrow_", 2)[0]
+                Set_images(string= Dir_images.Weapons.dir + "arrow_", n_frames= 2).images[0]
             )
         )
 
@@ -593,7 +483,7 @@ class Game:
     def spawn_enemy(self):
         x = random.randint(2, COLUMNS - 2) * CELL_SIZE
         y = random.randint(2, ROWS - 2) * CELL_SIZE
-        self.enemies.append(Entity(x, y, loading_images(DIR_PLAYER + DIR_ENEMY, 2)))
+        self.enemies.append(Entity(x, y, Set_images(string= Dir_images.Characters.Player.Enemy.dir, n_frames= Dir_images.Characters.Player.Enemy.N_FRAMES).images))
 
     def check_player_enemy_collision(self):
         for enemy in self.enemies:
@@ -621,7 +511,7 @@ class Game:
                     enemy.state = ENTITY_EXPLOSION
                     getattr(sounds, "explosion").set_volume(game.effects_volume)  
                     getattr(sounds, "explosion").play()
-                    enemy.frames = loading_images(DIR_PLAYER + DIR_ENEMY + "bomb/bomb_", 4)
+                    enemy.frames = Set_images(string= Dir_images.Characters.Player.Enemy.dir + "bomb/bomb_", n_frames= 4).images
 
             if enemy.hit_cooldown > self.enemy_remove_interval:
                 self.score += 1
@@ -633,7 +523,7 @@ class Game:
                         enemy.hit_cooldown += dt
                         getattr(sounds, ARROW_SOUDS[2]).play()
                         projectile.hit(dt)
-                        enemy.frames = loading_images(DIR_PLAYER + DIR_ENEMY + "enemi_dead_", 2)
+                        enemy.frames = Set_images(string= Dir_images.Characters.Player.Enemy.dir + "enemi_dead_", n_frames= 2).images
 
     def increase_difficulty(self):
         self.enemy_speed += 0.01
@@ -703,13 +593,55 @@ class Game:
             Rect(10, HEIGHT - 30, self.player_health * 2, 20),
             HEALTH_COLOR,
         )
+        x = (self.player.tile.x - CELL_SIZE/2)
+        y = (self.player.tile.y + CELL_SIZE/2) + 3
+
+        screen.draw.filled_rect(
+            Rect(x-1, y-1, 32, 8),
+            (0, 0, 0),
+        )
+        if len(self.projectiles) > 0:
+            shoot = self.projectiles[len(self.projectiles) - 1]
+            # draw_text_with_border(
+            #     f"Shoot: {min(self.shoot_cooldown, shoot.shoot_spawn_cooldown):.2f}",
+            #     position=(self.player.tile.x, self.player.tile.y),
+            #     fontsize=30,
+            #     color="white",
+            #     border_color="black",
+            #     border_width=1
+            # )
+            screen.draw.filled_rect(
+                Rect(x, y,  min(self.shoot_cooldown, shoot.shoot_spawn_cooldown) * 30 , 6),
+                HEALTH_COLOR,
+            )
+        else:
+            # draw_text_with_border(
+            #     f"Shoot: {self.shoot_cooldown:.2f}",
+            #     position=(self.player.tile.x, self.player.tile.y),
+            #     fontsize=30,
+            #     color="white",
+            #     border_color="black",
+            #     border_width=1
+            # )
+            screen.draw.filled_rect(
+                Rect(x, y,  self.shoot_cooldown * 30 , 6),
+                HEALTH_COLOR,
+            )
+
 
     def keybord_press(self):
         if self.charging:
             move_pixel = 0
         else:
             move_pixel = .1
-
+        # if (keyboard.lshift):
+        #     move_pixel *= 1.5
+        dx = MOUSE_POS[0] - self.player.tile.x
+        dy = MOUSE_POS[1] - self.player.tile.y
+        magnitude = math.sqrt(dx**2 + dy**2)
+        if magnitude > 0:
+            dx /= magnitude
+            dy /= magnitude
         if (keyboard.LEFT or keyboard.A) and (keyboard.UP or keyboard.W):
             self.player.move(-move_pixel, -move_pixel)
         elif (keyboard.LEFT or keyboard.A) and (keyboard.DOWN or keyboard.S):
@@ -731,6 +663,11 @@ class Game:
             pgzero.music.pause()
             self.paused = True
 
+        if (keyboard.lshift):
+            if self.player_skill_timer > self.player_skill_cooldown:
+                self.player_skill_timer = 0
+                self.player.move(dx * 5, dy * 5)
+        
         if self.charging:
             getattr(sounds, "walking").stop()
         else:
@@ -745,13 +682,13 @@ class Game:
             getattr(sounds, "walking").stop()
 
         if self.charging:
-            self.set_player_frames(Player(DIR_PLAYER , DIR_GIRL_1, DIR_ATTACK, dir_sprite).images, Player(DIR_PLAYER , DIR_GIRL_1, DIR_ATTACK, dir_sprite).animation_time)
+            self.set_player_frames(Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.ATTACK, dir_sprite).images, Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.ATTACK, dir_sprite).animation_time)
         elif not move_keys and not self.charging:
             self.animation = True
-            self.set_player_frames(Player(DIR_PLAYER , DIR_GIRL_1, DIR_WAITING, dir_sprite).images, self.animation_speed + 0.3)
+            self.set_player_frames(Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.WAITING, dir_sprite).images, Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.WAITING, dir_sprite).animation_time)
         elif move_keys and not self.charging:
             self.animation = True
-            self.set_player_frames(Player(DIR_PLAYER , DIR_GIRL_1, DIR_WALKING, dir_sprite).images, self.animation_speed)
+            self.set_player_frames(Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.WALKING, dir_sprite).images, Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.WALKING, dir_sprite).animation_time)
 
 
     def set_player_frames(self, frames, time):
@@ -766,11 +703,17 @@ class Game:
             self.elapsed_time += dt
             self.enemy_animation_timer += dt
             self.player_animation_timer += dt
+            self.player_skill_timer += dt
 
             # Atualiza a animação dos inimigos
             if self.enemy_animation_timer >= self.animation_speed:
                 self.enemy_animation_timer = 0  # Reseta o temporizador
                 for enemy in self.enemies:
+                    if enemy.hit_cooldown <= 1:
+                        if enemy.tile.x > self.player.tile.x:
+                            enemy.tile.flip_x = True
+                        else:
+                            enemy.tile.flip_x = False
                     enemy.update_frames()
             if self.charging:
                 self.charging_time = min(self.charging_time + dt, 2)
@@ -808,13 +751,13 @@ class Game:
             if self.projectiles[len(self.projectiles) - 1].shoot_spawn_cooldown > self.shoot_cooldown:
                 self.animation = True
                 self.charging = True
-                self.set_player_frames(loading_images(self.player_selected + DIR_ATTACK + DIR_SIDE, 4), self.animation_speed)
+                self.set_player_frames(Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.ATTACK, dir_sprite).images, Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.ATTACK, dir_sprite).animation_time)
                 self.charging_time = 0
                 getattr(sounds, ARROW_SOUDS[0]).play()
         else:
             self.animation = True
             self.charging = True
-            self.set_player_frames(loading_images(self.player_selected + DIR_ATTACK + DIR_SIDE, 4), self.animation_speed)
+            self.set_player_frames(Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.ATTACK, dir_sprite).images, Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.ATTACK, dir_sprite).animation_time)
             self.charging_time = 0
             getattr(sounds, ARROW_SOUDS[0]).play()
 
@@ -908,10 +851,10 @@ def update(dt):
         if not game.freeze_mode:
             horizontal = abs(MOUSE_POS[0] - game.player.tile.x) > abs(MOUSE_POS[1] - game.player.tile.y)
             if horizontal:
-                dir_sprite = DIR_SIDE
-                game.player.tile.flip_x = flip_x = MOUSE_POS[0] < game.player.tile.x
+                dir_sprite = Dir.Directions.SIDE
+                game.player.tile.flip_x = MOUSE_POS[0] < game.player.tile.x
             else:
-                dir_sprite = DIR_DOWN if MOUSE_POS[1] > game.player.tile.y else DIR_UP
+                dir_sprite = Dir.Directions.DOWN if MOUSE_POS[1] > game.player.tile.y else Dir.Directions.UP
             game.draw_playing(dt)
     else:
         getattr(sounds, "walking").stop()
@@ -943,5 +886,3 @@ def draw():
 # Inicialização rápida do jogo
 game = Game()
 pgzrun.go()
-
-# Adicionar variavel para guardar estado se esta tocando o som de andar para assim verificar se esta tocando antes de chamar o play novamente
