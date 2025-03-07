@@ -66,13 +66,81 @@ def draw_text_with_border(text, position, fontsize=30, color="white", border_col
 
 
 # Classe Entidade
+# class Power_up:
+class Power_ups:
+    def __init__(self, x, y, tipe, scale=1):
+        self.current_frame = 0
+        self.scale = scale
+        self.tipe = tipe
+        self.animation_timer = 0
+        self.set_frames()
+        self.n_frames = len(self.frames)
+        self.tile.pos = (x, y)
+        self.update_frames(1/60)
+    def pick_up(self):
+        if self.tipe == PW_HEALTH:
+            game.player_health += random.randrange(1,10)
+            print("Vida ",game.player_health)
+        elif self.tipe == PW_CADENCE:
+            game.shoot_cooldown *= 0.99
+            print("Cadencia de tiro ",game.shoot_cooldown)
+        elif self.tipe == PW_MOVIMENT_SPEED:
+            game.speed_moviment *= 1.01
+            print("Velocidade de movimento ",game.speed_moviment)
+        
+    def draw(self):
+        self.tile.draw()
+
+    def set_frames(self):
+        if self.tipe == PW_HEALTH:
+            self.frames = Set_images(string= Dir_images.Pw.dir + "health_", n_frames= 8).images
+        elif self.tipe == PW_CADENCE:
+            self.frames = Set_images(string= Dir_images.Pw.dir + "cadence_", n_frames= 11).images
+        elif self.tipe == PW_MOVIMENT_SPEED:
+            self.frames = Set_images(string= Dir_images.Pw.dir + "move_speed_", n_frames= 1).images
+        
+        self.tile = Actor(self.frames[self.current_frame])
+        self.tile.scale = self.scale
+
+    def update_frames(self, dt):
+        self.animation_timer += dt
+        if self.animation_timer >= 1/ self.n_frames:
+            self.current_frame = (self.current_frame + 1) % self.n_frames
+            self.tile.image = self.frames[self.current_frame]
+            self.tile.scale = self.scale
+            self.animation_timer = 0
+
+# class Sons do jogo:
+class Songs_obj:
+    def __init__(self, song, vol):
+        self.song = song
+        self.song_playing = False
+        self.obj = getattr(sounds, self.song)
+        self.obj.set_volume(vol)
+
+    def play(self):
+        self.obj.play()
+
+    def stop(self):
+        self.song_playing = False
+        self.obj.stop()
+    
+    def pause(self):
+        self.song_playing = False
+        self.obj.pause()
+
+    def update(self):
+        if self.song_playing == False:
+            self.play
+        else:
+            self.stop
+
 class Entity:
     def __init__(self, x, y, frames, scale=1):
         self.frames = frames
         self.current_frame = 0
         self.tile = Actor(self.frames[self.current_frame])
-        self.tile_scale = scale
-        self.tile.scale = self.tile_scale
+        self.tile.scale = scale
         self.hit_cooldown = 0
         self.tile.pos = (x, y)
         self.state = ENTITY_NEW
@@ -351,13 +419,14 @@ class Game:
         self.enemy_animation_timer = 0  # Temporizador para a animação
         self.player_selected = ""
         self.player_animation_timer = 0
-        self.player_skill_timer = 0 
+        self.player_skill_timer = 2 
         self.player_skill_cooldown = 2
         self.animation = False
         self.animation_string = ""
         self.score = 0
         self.projectiles = [Projectile]
         self.enemies = [Entity]
+        self.pw = [Power_ups]
         self.player_health = 100
         self.last_enemy_move_time = 0
         self.enemy_move_interval = 0.03
@@ -372,6 +441,7 @@ class Game:
         self.shoot_cadence = 1
         self.shoot_cooldown = 1
         self.sound_playng = False
+        self.speed_moviment = .1
     
     def play_sound_volume(self, sound, vol = 1):
         getattr(sounds, sound).set_volume(game.effects_volume * vol)
@@ -442,9 +512,12 @@ class Game:
         self.score = 0
         self.enemies = []
         self.projectiles = []
+        self.pw = []
         self.player.tile.pos = (WIDTH / 2 - self.player.tile.width, HEIGHT / 2 - self.player.tile.height)
         self.enemy_speed = .1
         self.time_elapsed = 0
+        self.shoot_cooldown = 1
+        self.speed_moviment = .1
         self.volume()
 
     def volume(self):
@@ -502,21 +575,33 @@ class Game:
         y = random.randint(2, ROWS - 2) * CELL_SIZE
         self.enemies.append(Entity(x, y, Set_images(string= Dir_images.Characters.Player.Enemy.dir, n_frames= Dir_images.Characters.Player.Enemy.N_FRAMES).images))
 
+    def spawn_pw(self):
+        x = random.randint(2, COLUMNS - 2) * CELL_SIZE
+        y = random.randint(2, ROWS - 2) * CELL_SIZE
+        pw_randon = random.choice(POWER_UPS)
+        self.pw.append(Power_ups(x, y, pw_randon, 2))
+
     def check_player_enemy_collision(self):
-        for enemy in self.enemies:
-            if enemy.tile.colliderect(self.player.tile):
-                if self.total_time - self.last_damage_time >= self.damage_cooldown:
-                    self.last_damage_time = self.total_time
-                    if enemy.state == ENTITY_NEW:
-                        self.player_health -= 0.2
-                    elif enemy.state == ENTITY_HIT:
-                        self.player_health -= 0
-                    elif enemy.state == ENTITY_EXPLOSION:
-                        self.player_health -= 2
-                    if self.player_health <= 0:
-                        self.status = STATE_GAME_OVER
-                        pgzero.music.stop()
-                    break
+        if self.player_skill_timer > 0.2:
+            for enemy in self.enemies:
+                if enemy.tile.colliderect(self.player.tile):
+                    if self.total_time - self.last_damage_time >= self.damage_cooldown:
+                        self.last_damage_time = self.total_time
+                        if enemy.state == ENTITY_NEW:
+                            self.player_health -= 0.2
+                        elif enemy.state == ENTITY_HIT:
+                            self.player_health -= 0
+                        elif enemy.state == ENTITY_EXPLOSION:
+                            self.player_health -= 2
+                        if self.player_health <= 0:
+                            self.status = STATE_GAME_OVER
+                            pgzero.music.stop()
+                        break
+    def check_player_pw_collision(self):
+        for pw in self.pw:
+            if pw.tile.colliderect(self.player.tile):
+                pw.pick_up()
+                self.pw.remove(pw)
 
     def check_projectile_enemy_collision(self, dt):
         for enemy in self.enemies:
@@ -576,6 +661,9 @@ class Game:
         for projectile in self.projectiles:
             projectile.draw()
 
+        for pw in self.pw:
+            pw.draw()
+
     def draw_hud(self):
         draw_text_with_border(
             f"Pontuação: {self.score}",
@@ -629,16 +717,17 @@ class Game:
 
         if len(self.projectiles) > 0:
             shoot = self.projectiles[len(self.projectiles) - 1]
-            img_arrow_cooldown._surf.set_alpha(min( 255, shoot.shoot_spawn_cooldown * 255))
+            shoot_fill = shoot.shoot_spawn_cooldown/self.shoot_cooldown
+            img_arrow_cooldown._surf.set_alpha(min( 255, shoot_fill * 255))
             screen.draw.filled_rect(
-                Rect(x, y,  min(self.shoot_cooldown, shoot.shoot_spawn_cooldown) * 30 , 6),
+                Rect(x, y,  min(1, shoot_fill) * 30, 6),
                 HEALTH_COLOR,
             )
         else:
             img_arrow_cooldown._surf.set_alpha(255)
             Actor(Set_images(string= Dir_images.Weapons.dir + "arrow_", n_frames= 1).images[0], (0,0),(0,0))
             screen.draw.filled_rect(
-                Rect(x, y,  self.shoot_cooldown * 30 , 6),
+                Rect(x, y,  30 , 6),
                 HEALTH_COLOR,
             )
         img_arrow_cooldown.draw()
@@ -651,7 +740,7 @@ class Game:
         if self.charging:
             move_pixel = 0
         else:
-            move_pixel = .1
+            move_pixel = self.speed_moviment
         # if (keyboard.lshift):
         #     move_pixel *= 1.5
         dx = MOUSE_POS[0] - self.player.tile.x
@@ -661,10 +750,12 @@ class Game:
             dx /= magnitude
             dy /= magnitude
 
-        if (keyboard.lshift) and self.player_skill_timer > self.player_skill_cooldown:
-            self.player_skill_timer = 0
-            self.play_sound_volume(random.choice(WOOSH_SOUDS), .5)
-            self.player.move(dx * 4, dy * 4)
+        if (keyboard.lshift):
+            if self.player_skill_timer > self.player_skill_cooldown:
+                self.player_skill_timer = 0
+                self.play_sound_volume(random.choice(WOOSH_SOUDS), .5)
+            elif 0 <= self.player_skill_timer <= .2:
+                self.player.move(dx * 0.5, dy * 0.5)
         
         if self.player_skill_timer > 0.2:
             if (keyboard.LEFT or keyboard.A) and (keyboard.UP or keyboard.W):
@@ -735,6 +826,7 @@ class Game:
             if self.elapsed_time >= 1 and self.difficulty_score < self.score:
                 self.difficulty_score += 10
                 self.increase_difficulty()
+                self.spawn_pw()
                 self.elapsed_time = 0
 
             for projectile in self.projectiles:
@@ -749,9 +841,12 @@ class Game:
             if self.last_enemy_spawn_time >= self.enemy_spawn_interval:
                 self.spawn_enemy()
                 self.last_enemy_spawn_time = 0
-            
-            
+
+            for pw in self.pw:
+                pw.update_frames(dt)
+
             self.keybord_press()
+            self.check_player_pw_collision()
             self.check_projectile_enemy_collision(dt)
             self.check_player_enemy_collision()
 

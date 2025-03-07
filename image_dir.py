@@ -22,6 +22,9 @@ class Dir():
         DOWN = "down/"
         SIDE = "side/"
 
+    # Power Ups 
+    class Pw():
+        DIR = "pw/"
     # Texturas
     class Textures():
         DIR = "textures/"
@@ -55,6 +58,9 @@ class Directions():
         self.images = loading_images(self.dir, self.N_FRAMES)
 
 class Dir_images:
+    class Pw:
+        dir = Dir.Pw.DIR
+        N_FRAMES = 2
     class Textures:
         dir = Dir.Textures.DIR
         N_FRAMES = 1

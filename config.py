@@ -67,6 +67,12 @@ STATE_PAUSED_CONFIG = "config_paused"
 STATE_SETTINGS = "config"
 STATE_GAME_OVER = "game_over"
 
+# Tipos de bonus
+PW_MOVIMENT_SPEED = "speed"
+PW_HEALTH = "health"
+PW_CADENCE = "cadence"
+POWER_UPS = ["speed", "health", "cadence"]
+
 # Estados da entidade
 ENTITY_NEW = "new"
 ENTITY_HIT = "hit"
