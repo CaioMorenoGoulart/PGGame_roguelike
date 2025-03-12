@@ -1,15 +1,18 @@
 # Importações
-
 import math
 import random
 import pgzero
-from pygame import Rect
+from pygame import Rect, Surface, SRCALPHA
 import pgzrun
 from image_dir import Set_images, Dir_images, Player, Dir
+import screens
+from auto import *
 
 import json
 from pgzhelper import Actor
 
+screens
+Surface
 Rect
 math
 random
@@ -19,6 +22,15 @@ Set_images
 Dir_images
 Player
 Dir
+
+# Restirando avisos
+screen: any
+animate: any
+keyboard: any
+sounds: any
+keys: any
+mouse: any
+
 
 # Funções para salvar e carregar configurações
 def save_settings(config):
@@ -37,12 +49,19 @@ def load_settings():
             "screen_opt": 0,
         }
 
+
 # Variáveis Globais
 
 # Cores
 TEXT_COLOR = (255, 255, 255)
 HOVER_COLOR = (100, 100, 255)
 HEALTH_COLOR = (0, 255, 0)
+
+# Fontes
+FONT_SIZE_TITTLE = 50
+FONT_SIZE_MENU = 30
+FONT_SIZE_TEXTS = 26
+FONT_SIZE_ITENS = 14
 
 # Configurações iniciais
 
@@ -61,11 +80,14 @@ ROWS = HEIGHT // CELL_SIZE
 
 # Estados de jogo
 STATE_PLAYING = "playing"
+STATE_RESUME_GAME = "resume_play"
 STATE_MENU = "menu"
 STATE_PAUSED = "paused"
 STATE_PAUSED_CONFIG = "config_paused"
 STATE_SETTINGS = "config"
 STATE_GAME_OVER = "game_over"
+STATE_EXIT = "exit"
+
 
 # Tipos de bonus
 PW_MOVIMENT_SPEED = "speed"

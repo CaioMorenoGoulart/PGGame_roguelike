@@ -37,15 +37,6 @@ class Map:
         for tile in self.map_tiles:
             tile.draw()
 
-
-# Formatar Tempo
-def time_format(seconds):
-    hours = seconds // 3600
-    minuts = (seconds % 3600) // 60
-    remaining_seconds = seconds % 60
-    return f"{hours:02.0f}:{minuts:02.0f}:{remaining_seconds:02.0f}"
-
-
 # Ajustar hitbox
 def right_hitbox(actor):
     actor.hitbox = Rect(
@@ -55,48 +46,54 @@ def right_hitbox(actor):
         actor.tile.height - 2
     )
 
+class Time_texts:
+    def __init__(self, text, pos):
+        self.text = text
+        self.time = 0
+        self.pos = pos
+        
+    def update(self, dt):
+        self.time+= dt
 
-def draw_text_with_border(text, position, fontsize=30, color="white", border_color="black", border_width=2):
-    x, y = position
-    for dx in (-border_width, 0, border_width):
-        for dy in (-border_width, 0, border_width):
-            if dx != 0 or dy != 0:
-                screen.draw.text(text, (x + dx, y + dy), fontsize=fontsize, color=border_color)
-    screen.draw.text(text, (x, y), fontsize=fontsize, color=color)
 
-
-# Classe Entidade
-# class Power_up:
+# Classe Power_up:
 class Power_ups:
     def __init__(self, x, y, tipe, scale=1):
         self.current_frame = 0
         self.scale = scale
         self.tipe = tipe
         self.animation_timer = 0
+        self.text = ""
         self.set_frames()
         self.n_frames = len(self.frames)
         self.tile.pos = (x, y)
         self.update_frames(1/60)
     def pick_up(self):
         if self.tipe == PW_HEALTH:
-            game.player_health += random.randrange(1,10)
-            print("Vida ",game.player_health)
+            if game.player_health < 200:
+                game.player_health += self.pw
         elif self.tipe == PW_CADENCE:
-            game.shoot_cooldown *= 0.99
-            print("Cadencia de tiro ",game.shoot_cooldown)
+            if game.shoot_cooldown > 0.05:
+                game.shoot_cooldown *= self.pw
         elif self.tipe == PW_MOVIMENT_SPEED:
-            game.speed_moviment *= 1.01
-            print("Velocidade de movimento ",game.speed_moviment)
+            if game.speed_moviment < 0.4:
+                game.speed_moviment *= self.pw
         
     def draw(self):
         self.tile.draw()
-
+        
     def set_frames(self):
         if self.tipe == PW_HEALTH:
+            self.pw = random.randrange(1,10)
+            self.text = (f"+ {self.pw} de vida")
             self.frames = Set_images(string= Dir_images.Pw.dir + "health_", n_frames= 8).images
         elif self.tipe == PW_CADENCE:
+            self.pw = 0.99
+            self.text = (f"+ 0.1% de cadência")
             self.frames = Set_images(string= Dir_images.Pw.dir + "cadence_", n_frames= 11).images
         elif self.tipe == PW_MOVIMENT_SPEED:
+            self.pw = 1.01
+            self.text = (f"+ 0.1% de movimento")
             self.frames = Set_images(string= Dir_images.Pw.dir + "move_speed_", n_frames= 1).images
         
         self.tile = Actor(self.frames[self.current_frame])
@@ -110,31 +107,7 @@ class Power_ups:
             self.tile.scale = self.scale
             self.animation_timer = 0
 
-# class Sons do jogo:
-class Songs_obj:
-    def __init__(self, song, vol):
-        self.song = song
-        self.song_playing = False
-        self.obj = getattr(sounds, self.song)
-        self.obj.set_volume(vol)
-
-    def play(self):
-        self.obj.play()
-
-    def stop(self):
-        self.song_playing = False
-        self.obj.stop()
-    
-    def pause(self):
-        self.song_playing = False
-        self.obj.pause()
-
-    def update(self):
-        if self.song_playing == False:
-            self.play
-        else:
-            self.stop
-
+# Classe Entidade
 class Entity:
     def __init__(self, x, y, frames, scale=1):
         self.frames = frames
@@ -230,38 +203,6 @@ class Projectile:
     def offscreen(self):
         return self.tile.x < CELL_SIZE or self.tile.x > COLUMNS * CELL_SIZE - CELL_SIZE or self.tile.y < CELL_SIZE or self.tile.y > ROWS * CELL_SIZE - CELL_SIZE
 
-
-# Criação do Botão
-class Button:
-    def __init__(self, x, y, text, action):
-        self.x = x
-        self.y = y
-        self.text = text
-        self.action = action
-        self.screen_width = 200
-        self.screen_height = 50
-
-    def draw(self, mouse_pos):
-        color = HOVER_COLOR if self.is_hovered(mouse_pos) else TEXT_COLOR
-        screen.draw.filled_rect(
-            Rect(self.x, self.y, self.screen_width, self.screen_height),
-            (50, 50, 50),
-        )
-        screen.draw.text(
-            self.text,
-            center=(self.x + self.screen_width // 2, self.y + self.screen_height // 2),
-            fontsize=30,
-            color=color,
-        )
-
-    def is_hovered(self, mouse_pos):
-        return (
-            self.x <= mouse_pos[0] <= self.x + self.screen_width
-            and self.y <= mouse_pos[1] <= self.y + self.screen_height
-        )
-
-
-# Classe Slider
 class Slider:
     def __init__(self, x, y, screen_width, initial_value=0.5):
         self.x = x
@@ -272,7 +213,7 @@ class Slider:
         self.dragging = False
         self.indicator_radius = 10
 
-    def draw(self, screen):
+    def draw(self):
         screen.draw.filled_rect(
             Rect(self.x, self.y, self.screen_width, self.screen_height),
             (100, 100, 100),
@@ -295,111 +236,11 @@ class Slider:
             self.value = (pos[0] - self.x) / self.screen_width
             self.value = max(0.0, min(1.0, self.value))
 
-
-# Classe Dropdown
-class Dropdown:
-    def __init__(self, x, y, screen_width, options, selected_option):
-        self.x = x
-        self.y = y
-        self.screen_width = screen_width
-        self.screen_height = 40
-        self.options = options
-        self.selected_option = selected_option
-        self.open = False
-
-    def draw(self, screen):
-        screen.draw.filled_rect(
-            Rect(self.x, self.y, self.screen_width, self.screen_height),
-            (50, 50, 50),
-        )
-        screen.draw.text(
-            self.options[self.selected_option],
-            center=(self.x + self.screen_width // 2, self.y + self.screen_height // 2),
-            fontsize=30,
-            color=HOVER_COLOR if self.is_hovered(MOUSE_POS) else TEXT_COLOR,
-        )
-
-        if self.open:
-            for i, option in enumerate(self.options):
-                screen.draw.filled_rect(
-                    Rect(self.x, self.y + (i + 1) * self.screen_height, self.screen_width, self.screen_height),
-                    (70, 70, 70),
-                )
-                screen.draw.text(
-                    option,
-                    center=(self.x + self.screen_width // 2, self.y + (i + 1.5) * self.screen_height),
-                    fontsize=30,
-                    color=TEXT_COLOR,
-                )
-
-    def is_hovered(self, pos):
-        if self.open:
-            return (
-                self.x <= pos[0] <= self.x + self.screen_width
-                and self.y <= pos[1] <= self.y + (len(self.options) + 1) * self.screen_height
-            )
-        else:
-            return (
-                self.x <= pos[0] <= self.x + self.screen_width
-                and self.y <= pos[1] <= self.y + self.screen_height
-            )
-
-    def select_option(self, pos):
-        if self.open:
-            for i in range(len(self.options)):
-                if (
-                    self.x <= pos[0] <= self.x + self.screen_width
-                    and self.y + (i + 1) * self.screen_height <= pos[1] <= self.y + (i + 2) * self.screen_height
-                ):
-                    self.selected_option = i
-                    self.open = False
-                    return self.options[i]
-        else:
-            self.open = not self.open
-        return None
-
-
-# Classe Telas
-class Screens:
-    def menu(self):
-        return [
-            Button(WIDTH // 2 - 100, HEIGHT // 2 - 50, "Jogar", game.start_game),
-            Button(WIDTH // 2 - 100, HEIGHT // 2 + 20, "Configurações", game.call_settings),
-            Button(WIDTH // 2 - 100, HEIGHT // 2 + 90, "Sair", game.exit),
-        ]
-
-    def settings(self):
-        if not game.paused:
-            return [
-                Button(WIDTH // 2 - 100, HEIGHT // 2 + 20, "Voltar", game.back_to_menu),
-            ]
-        else:
-            return [
-                Button(WIDTH // 2 - 100, HEIGHT // 2 + 20, "Voltar ao jogo", game.resume_game),
-            ]
-
-    def pause(self):
-        return [
-            Button(WIDTH // 2 - 100, HEIGHT // 2 - 50, "Continuar", game.resume_game),
-            Button(WIDTH // 2 - 100, HEIGHT // 2 + 20, "Configurações", game.call_settings),
-            Button(WIDTH // 2 - 100, HEIGHT // 2 + 90, "Voltar para o menu", game.back_to_menu),
-        ]
-
-    def game_over(self):
-        return [
-            Button(WIDTH // 2 - 100, HEIGHT // 2 - 50, "Jogar novamente", game.start_game),
-            Button(WIDTH // 2 - 100, HEIGHT // 2 + 20, "Configurações", game.call_settings),
-            Button(WIDTH // 2 - 100, HEIGHT // 2 + 90, "Voltar para o Menu", game.back_to_menu),
-        ]
-
-
-# Criação do jogo
 class Game:
     def __init__(self):
         self.settings = CONFIG
         self.mapa = Map()
         self.mapa.draw_map()
-        self.screens = Screens()
         self.freeze_mode = False
         self.draw_hitbox = False
         self.status = STATE_MENU
@@ -407,9 +248,8 @@ class Game:
         self.music_volume = self.settings["music_volume"]
         self.effects_volume = self.settings["effects_volume"]
         self.screen_opt = self.settings["screen_opt"]
-        self.music_volume_slider = Slider(WIDTH // 2 - 100, HEIGHT // 2 + 150, 200, self.music_volume)
-        self.effects_volume_slider = Slider(WIDTH // 2 - 100, HEIGHT // 2 + 200, 200, self.effects_volume)
-        self.resolution_dropdown = Dropdown(WIDTH // 2 - 100, HEIGHT // 2 - 100, 200, RESOLUTION_OPTIONS, self.screen_opt)
+        self.music_volume_slider = Slider(WIDTH // 2 - 100, HEIGHT // 2 + 120, 200, self.music_volume)
+        self.effects_volume_slider = Slider(WIDTH // 2 - 100, HEIGHT // 2 + 170, 200, self.effects_volume)
         self.difficulty_score = 10
         self.press = False
         self.charging = False
@@ -442,13 +282,15 @@ class Game:
         self.shoot_cooldown = 1
         self.sound_playng = False
         self.speed_moviment = .1
+        self.text_pw_list = [Time_texts]
     
     def play_sound_volume(self, sound, vol = 1):
-        getattr(sounds, sound).set_volume(game.effects_volume * vol)
+        getattr(sounds, sound).set_volume(self.opt.slide[1].value * vol)
         getattr(sounds, sound).play()
     def draw_menu(self):
-        for button in self.screens.menu():
-            button.draw(MOUSE_POS)
+        import screens.menu
+        self.opt = screens.menu.menu.buttons
+        [i.draw(screen, MOUSE_POS) for i in self.opt]
 
     def call_settings(self):
         if self.status == STATE_MENU or self.status == STATE_GAME_OVER:
@@ -457,41 +299,48 @@ class Game:
             self.status = STATE_PAUSED_CONFIG
 
     def draw_settings(self):
-        for button in self.screens.settings():
-            button.draw(MOUSE_POS)
+        if self.status == STATE_SETTINGS:
+            import screens.screen_config
+            self.opt = screens.screen_config.menu
+        elif self.status == STATE_PAUSED_CONFIG:
+            import screens.config_pause
+            self.opt = screens.config_pause.menu
 
-        self.music_volume_slider.draw(screen)
-        self.effects_volume_slider.draw(screen)
-        self.resolution_dropdown.draw(screen)
+        self.opt.dropdown.draw(screen, MOUSE_POS)
 
-        screen.draw.text(
-            f"Volume Música: {int(self.music_volume * 100)}%",
-            topleft=(WIDTH // 2 - 100, HEIGHT // 2 + 170),
-            fontsize=30,
-            color=TEXT_COLOR,
-        )
-        screen.draw.text(
-            f"Volume Efeitos: {int(self.effects_volume * 100)}%",
-            topleft=(WIDTH // 2 - 100, HEIGHT // 2 + 220),
-            fontsize=30,
-            color=TEXT_COLOR,
-        )
+        [i.draw(screen, MOUSE_POS) for i in self.opt.buttons]
+        [i.draw(screen) for i in self.opt.slide]
+
+
+        # screen.draw.text(
+        #     f"Volume Música: {int(self.music_volume * 100)}%",
+        #     topleft=(self.music_volume_slider.x, self.music_volume_slider.y - 20),
+        #     fontsize=FONT_SIZE_MENU,
+        #     color=TEXT_COLOR,
+        # )
+        # screen.draw.text(
+        #     f"Volume Efeitos: {int(self.effects_volume * 100)}%",
+        #     topleft=(self.effects_volume_slider.x, self.effects_volume_slider.y - 20),
+        #     fontsize=FONT_SIZE_MENU,
+        #     color=TEXT_COLOR,
+        # )
 
     def draw_pause(self):
-        for button in self.screens.pause():
-            button.draw(MOUSE_POS)
+        import screens.pause
+        self.opt = screens.pause.menu.buttons
+        [i.draw(screen, MOUSE_POS) for i in self.opt]
 
     def resume_game(self):
         self.status = STATE_PLAYING
-        pgzero.music.unpause()
-        self.paused = False
         self.volume()
         save_settings(self.settings)
+        pgzero.music.unpause()
+        self.paused = False
         
     def back_to_menu(self):
-        game.save_updated_settings()
         self.status = STATE_MENU
         self.paused = False
+        game.save_updated_settings()
 
     def change_resolution(self, resolution):
         global SCRENN_OPT
@@ -499,8 +348,8 @@ class Game:
 
     def save_updated_settings(self):
         self.settings = {
-            "music_volume": self.music_volume,
-            "effects_volume": self.effects_volume,
+            "music_volume": self.opt.slide[0].value,
+            "effects_volume": self.opt.slide[1].value,
             "screen_opt": SCRENN_OPT,
         }
         save_settings(self.settings)
@@ -511,6 +360,7 @@ class Game:
         self.player_health = 100
         self.score = 0
         self.enemies = []
+        self.text_pw_list = []
         self.projectiles = []
         self.pw = []
         self.player.tile.pos = (WIDTH / 2 - self.player.tile.width, HEIGHT / 2 - self.player.tile.height)
@@ -518,13 +368,15 @@ class Game:
         self.time_elapsed = 0
         self.shoot_cooldown = 1
         self.speed_moviment = .1
+        self.difficulty_score = 10
+        self.total_time = 0
         self.volume()
+        pgzero.music.play('music.wav')
 
     def volume(self):
         for sound in ARROW_SOUDS:
-            getattr(sounds, sound).set_volume(self.effects_volume)
+            getattr(sounds, sound).set_volume(self.opt.slide[1].value)
         pgzero.music.set_volume(self.music_volume)
-        pgzero.music.play('music.wav')
 
 
 
@@ -579,7 +431,7 @@ class Game:
         x = random.randint(2, COLUMNS - 2) * CELL_SIZE
         y = random.randint(2, ROWS - 2) * CELL_SIZE
         pw_randon = random.choice(POWER_UPS)
-        self.pw.append(Power_ups(x, y, pw_randon, 2))
+        self.pw.append(Power_ups(x, y, pw_randon, 1.5))
 
     def check_player_enemy_collision(self):
         if self.player_skill_timer > 0.2:
@@ -601,6 +453,7 @@ class Game:
         for pw in self.pw:
             if pw.tile.colliderect(self.player.tile):
                 pw.pick_up()
+                self.text_pw_list.append(Time_texts(pw.text, pw.tile.pos))
                 self.pw.remove(pw)
 
     def check_projectile_enemy_collision(self, dt):
@@ -631,26 +484,26 @@ class Game:
         self.enemy_spawn_interval = max(0.5, self.enemy_spawn_interval - 0.1)
 
     def draw_game_over(self):
-        screen.draw.text(
-            "Game Over",
-            center=((WIDTH // 2), (HEIGHT // 2) - 200),
-            fontsize=50,
-            color=TEXT_COLOR,
-        )
-        screen.draw.text(
-            f"Pontuação: {self.score}",
-            center=((WIDTH // 2), (HEIGHT // 2) - 150),
-            fontsize=30,
-            color=TEXT_COLOR,
-        )
-        screen.draw.text(
-            f"Tempo De jogo: {time_format(self.total_time)}",
-            center=((WIDTH // 2), (HEIGHT // 2) - 100),
-            fontsize=30,
-            color=TEXT_COLOR,
-        )
-        for button in self.screens.game_over():
-            button.draw(MOUSE_POS)
+        # screen.draw.text(
+        #     f"Pontuação: {self.score}",
+        #     center=((WIDTH // 2), (HEIGHT // 2) - 150),
+        #     fontsize=FONT_SIZE_MENU,
+        #     color=TEXT_COLOR,
+        # )
+        # screen.draw.text(
+        #     f"Tempo De jogo: {time_format(self.total_time)}",
+        #     center=((WIDTH // 2), (HEIGHT // 2) - 100),
+        #     fontsize=FONT_SIZE_MENU,
+        #     color=TEXT_COLOR,
+        # )
+        import screens.game_over
+        self.opt = screens.game_over.menu.buttons
+        for i in self.opt:
+            if "$pontuacao$" in i.text:
+                i.text = i.text.replace("$pontuacao$", f"{self.score}")
+            if "$tempo$" in i.text:
+                i.text = i.text.replace("$tempo$", f"{time_format(self.total_time)}")
+            i.draw(screen, MOUSE_POS)
 
     def draw_player(self):
         self.player.draw()
@@ -665,38 +518,56 @@ class Game:
             pw.draw()
 
     def draw_hud(self):
-        draw_text_with_border(
+        screen.draw.text(
             f"Pontuação: {self.score}",
-            position=(10, 10),
-            fontsize=30,
+            (10, 10),
+            fontsize=FONT_SIZE_TEXTS,
             color="white",
-            border_color="black",
-            border_width=1
+            ocolor="black",
+            owidth=1
         )
-        draw_text_with_border(
+        screen.draw.text(
             f"Tempo de jogo: {time_format(self.total_time)}",
-            position=(WIDTH - 250, 10),
-            fontsize=30,
+            (WIDTH - 250, 10),
+            fontsize=FONT_SIZE_TEXTS,
             color="white",
-            border_color="black",
-            border_width=1
+            ocolor="black",
+            owidth=1
         )
-        draw_text_with_border(
+        screen.draw.text(
             f"Vida: {self.player_health:.0f}",
-            position=(10, HEIGHT - 50),
-            fontsize=30,
+            (10, HEIGHT - 50),
+            fontsize=FONT_SIZE_TEXTS,
             color="white",
-            border_color="black",
-            border_width=1
+            ocolor="black",
+            owidth=1
         )
+        for pw in self.text_pw_list:
+            if pw.time < 2: 
+                screen.draw.text(pw.text,
+                    midbottom =(pw.pos[0], (pw.pos[1] - CELL_SIZE / 2) - pw.time*10 ),
+                    fontsize=FONT_SIZE_ITENS,
+                    color="white",
+                    ocolor="black",
+                    owidth=2,
+                    alpha= (1 if pw.time < 1 else 2 - pw.time))
+                
+            else:
+                self.text_pw_list.remove(pw)
+
         screen.draw.filled_rect(
-            Rect(9, HEIGHT - 31, 202, 22),
+            Rect(9, HEIGHT - 31, 202 if self.player_health * 2 < 202 else self.player_health * 2 + 2, 22),
             (0, 0, 0),
         )
         screen.draw.filled_rect(
-            Rect(10, HEIGHT - 30, self.player_health * 2, 20),
+            Rect(10, HEIGHT - 30, min(100 ,self.player_health) * 2, 20),
             HEALTH_COLOR,
         )
+        screen.draw.filled_rect(
+            Rect(210, HEIGHT - 30, (self.player_health - 100) * 2, 20),
+            [0,0,255],
+        )
+
         x = (self.player.tile.x - CELL_SIZE/2)
         y = (self.player.tile.y + CELL_SIZE/2) + 3
 
@@ -730,11 +601,28 @@ class Game:
                 Rect(x, y,  30 , 6),
                 HEALTH_COLOR,
             )
+        if self.tab:
+            draw_alpha_box(WIDTH/4, HEIGHT/4, (0,0,0, 128), screen, (CELL_SIZE,CELL_SIZE))
+            screen.draw.text(f"Velocidade de ataque: {self.shoot_cooldown}",
+                    (CELL_SIZE * 2 , CELL_SIZE * 2),
+                    fontsize=FONT_SIZE_ITENS,
+                    color="white",
+                    ocolor="black",
+                    owidth=2,
+                    alpha= 100)
+            screen.draw.text(f"Velocidade de movimento: {self.speed_moviment}",
+                    (CELL_SIZE * 2 , CELL_SIZE * 3),
+                    fontsize=FONT_SIZE_ITENS,
+                    color="white",
+                    ocolor="black",
+                    owidth=2,
+                    alpha= 100)
+        
+        # text_test = screen.draw.text("All together now:\nCombining the above options", center=(WIDTH/2,CELL_SIZE), fontsize=30, color="#AAFF00", gcolor="#66AA00", owidth=1.5, ocolor="black", alpha=0.8)
+
         img_arrow_cooldown.draw()
         img_skill_cooldown.draw()
         img_skill_cooldown_2.draw()
-
-
 
     def keybord_press(self):
         if self.charging:
@@ -749,6 +637,11 @@ class Game:
         if magnitude > 0:
             dx /= magnitude
             dy /= magnitude
+
+        if (keyboard.tab):
+            self.tab = True
+        else:
+            self.tab = False
 
         if (keyboard.lshift):
             if self.player_skill_timer > self.player_skill_cooldown:
@@ -844,6 +737,11 @@ class Game:
 
             for pw in self.pw:
                 pw.update_frames(dt)
+            
+            for pw in self.text_pw_list:
+                pw.update(dt)
+            
+            # self.spawn_pw()
 
             self.keybord_press()
             self.check_player_pw_collision()
@@ -875,37 +773,48 @@ class Game:
     def exit(self):
         exit()
 
+def actions(action):
+    if action == STATE_EXIT:
+        game.exit()
+    elif action == STATE_MENU:
+        game.back_to_menu()
+    elif action == STATE_PLAYING:
+        game.start_game()
+    elif action == STATE_SETTINGS or action == STATE_PAUSED_CONFIG:
+        game.call_settings()
+    elif action == STATE_RESUME_GAME:
+        game.resume_game()
 
 def on_mouse_down(pos, button):
     if button == mouse.LEFT:
         if game.status == STATE_MENU:
-            for button in game.screens.menu():
+            for button in game.opt:
                 if button.is_hovered(pos):
-                    button.action()
+                    actions(button.action)
         elif game.status == STATE_SETTINGS or game.status == STATE_PAUSED_CONFIG:
-            for button in game.screens.settings():
+            for button in game.opt.buttons:
                 if button.is_hovered(pos):
-                    button.action()
+                    actions(button.action)
             if game.music_volume_slider.is_hovered_indicator(pos):
                 game.music_volume_slider.dragging = True
             if game.effects_volume_slider.is_hovered_indicator(pos):
                 game.effects_volume_slider.dragging = True
-            if game.resolution_dropdown.is_hovered(pos):
-                selected_option = game.resolution_dropdown.select_option(pos)
+            if game.opt.dropdown.is_hovered(pos) and not game.opt.dropdown.open:
+                game.opt.dropdown.open = True
+            elif game.opt.dropdown.open:
+                selected_option = game.opt.dropdown.select_option(pos)
                 if selected_option:
                     game.change_resolution(selected_option)
-            elif not game.resolution_dropdown.is_hovered(pos) and game.resolution_dropdown.open:
-                game.resolution_dropdown.open = False
         elif game.status == STATE_PLAYING:
             game.atack_pressed()
         elif game.status == STATE_PAUSED:
-            for button in game.screens.pause():
+            for button in game.opt:
                 if button.is_hovered(pos):
-                    button.action()
+                    actions(button.action)
         elif game.status == STATE_GAME_OVER:
-            for button in game.screens.game_over():
+            for button in game.opt:
                 if button.is_hovered(pos):
-                    button.action()
+                    actions(button.action)
 
 
 def on_mouse_up(pos, button):
@@ -923,14 +832,12 @@ def on_mouse_move(pos):
     global MOUSE_POS
     MOUSE_POS = pos
     if game.status == STATE_SETTINGS or game.status == STATE_PAUSED_CONFIG:
-        if game.music_volume_slider.dragging:
-            game.music_volume_slider.update_value(pos)
-            game.music_volume = game.music_volume_slider.value
-            pgzero.music.set_volume(game.music_volume)
-        if game.effects_volume_slider.dragging:
-            game.effects_volume_slider.update_value(pos)
-            game.effects_volume = game.effects_volume_slider.value
-            sounds.shot.set_volume(game.effects_volume)
+        if game.opt.slide[0].dragging:
+            game.opt.slide[0].update_value(pos)
+            pgzero.music.set_volume(game.opt.slide[0].value)
+        if game.opt.slide[1].dragging:
+            game.opt.slide[1].update_value(pos)
+            sounds.shot.set_volume(game.opt.slide[0].value)
 
 
 def on_key_down(key):
@@ -948,6 +855,7 @@ def on_key_down(key):
             game.atack_pressed()
     if key == keys.ESCAPE:
         if game.status == STATE_PLAYING:
+            draw_alpha_box(WIDTH, HEIGHT, (0,0,0, 100), screen, (0,0))
             pause_game()
         elif game.status == STATE_PAUSED:
             resume_game()
@@ -982,6 +890,7 @@ def update(dt):
             game.draw_playing(dt)
     else:
         getattr(sounds, "walking").stop()
+    
 def draw():
     if game.status == STATE_MENU:
         screen.clear()
