@@ -7,10 +7,13 @@ import pgzrun
 from image_dir import Set_images, Dir_images, Player, Dir
 import screens
 from auto import *
+from elements import Button, Float_texts
 
 import json
 from pgzhelper import Actor
 
+Button
+Float_texts
 screens
 Surface
 Rect
@@ -51,18 +54,6 @@ def load_settings():
 
 
 # Variáveis Globais
-
-# Cores
-TEXT_COLOR = (255, 255, 255)
-HOVER_COLOR = (100, 100, 255)
-HEALTH_COLOR = (0, 255, 0)
-
-# Fontes
-FONT_SIZE_TITTLE = 50
-FONT_SIZE_MENU = 30
-FONT_SIZE_TEXTS = 26
-FONT_SIZE_ITENS = 14
-
 # Configurações iniciais
 
 ARROW_SOUDS = ["arrow_1", "arrow_2", "arrow_3", "arrow_4"]
@@ -73,6 +64,8 @@ CELL_SIZE = Actor("textures/stone_tile_1", (0, 0), (0, 0)).height * SCAL
 RESOLUTION_OPTIONS = ["800x600", "1024x768", "1280x720"]
 SCRENN_OPT = CONFIG["screen_opt"]
 RESOLUTION = RESOLUTION_OPTIONS[SCRENN_OPT].split("x")
+MUSIC_VOL = CONFIG["music_volume"]
+EFFECT_VOL = CONFIG["effects_volume"]
 WIDTH = int(RESOLUTION[0])
 HEIGHT = int(RESOLUTION[1])
 COLUMNS = WIDTH // CELL_SIZE

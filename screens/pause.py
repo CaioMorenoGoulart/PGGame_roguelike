@@ -1,4 +1,4 @@
-from text_list import *
+from style import *
 from config import WIDTH, HEIGHT, STATE_RESUME_GAME, STATE_PAUSED_CONFIG, STATE_MENU
 
 class Menu_screen:

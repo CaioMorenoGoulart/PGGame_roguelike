@@ -13,12 +13,14 @@ class Button:
         bg_color="null",
         width=200,
         height=50,
+        alpha = 1,
     ):
         self.x = x
         self.y = y
         self.text = text
         self.text_size = text_size
         self.text_color = text_color
+        self.alpha = alpha
         self.text_hover_color = text_hover_color
         self.action = action
         self.box_width = width
@@ -33,6 +35,7 @@ class Button:
             self.text,
             center=(self.x + self.box_width // 2, self.y + self.box_height // 2),
             fontsize=self.text_size,
+            alpha=self.alpha,
             color=(
                 self.text_hover_color if self.is_hovered(mouse_pos) else self.text_color
             ),
@@ -164,10 +167,30 @@ class Dropdown:
 
 
 class Float_texts:
-    def __init__(self, text, pos):
+    def __init__(self, text , pos, font_size, color = "white", bcolor ="black", bsize = 2, draw_time = 2):
         self.text = text
+        self.font_size = font_size
+        self.color = color
+        self.bcolor = bcolor
+        self.bsize = bsize
         self.time = 0
-        self.pos = pos
+        self.x = pos[0]
+        self.y = pos[1]
+        self.alpha = 1
+        self.draw_time = draw_time
 
     def update(self, dt):
         self.time += dt
+        self.y -= dt*10
+        self.alpha = 1 if self.time < 1 else 2 - self.time
+        
+    
+    def draw(self, screen):
+        if self.time < self.draw_time: 
+            screen.draw.text(self.text,
+                midbottom =(self.x, self.y),
+                fontsize=self.font_size,
+                color=self.color,
+                ocolor=self.bcolor,
+                owidth=self.bsize,
+                alpha= self.alpha)

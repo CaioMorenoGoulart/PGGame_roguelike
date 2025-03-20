@@ -1,4 +1,4 @@
-from text_list import *
+from style import *
 
 OPT_MENU = [
             {
