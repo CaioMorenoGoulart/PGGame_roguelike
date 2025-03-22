@@ -480,7 +480,7 @@ class Game:
                 HEALTH_COLOR,
             )
         if self.tab:
-            draw_alpha_box(WIDTH/4, HEIGHT/4, (0,0,0, 128), screen, (CELL_SIZE,CELL_SIZE))
+            box(WIDTH/4, HEIGHT/4, (0,0,0, 128)).draw(screen, (CELL_SIZE,CELL_SIZE))
             screen.draw.text(f"Velocidade de ataque: {self.shoot_cooldown}",
                     (CELL_SIZE * 2 , CELL_SIZE * 2),
                     fontsize=FONT_SIZE_ITENS,
@@ -735,7 +735,7 @@ def on_key_down(key):
             game.atack_pressed()
     if key == keys.ESCAPE:
         if game.status == STATE_PLAYING:
-            draw_alpha_box(WIDTH, HEIGHT, (0,0,0, 100), screen, (0,0))
+            box(WIDTH, HEIGHT, (0,0,0, 100)).draw(screen, (0,0))
             pause_game()
         elif game.status == STATE_PAUSED:
             resume_game()
@@ -789,13 +789,13 @@ def draw():
         game.draw_player()
         game.draw_hud()
         if game.draw_hitbox:
-            draw_alpha_rect(game.player.hitbox, 1, (255, 0, 0), screen)
+            box(game.player.hitbox.width, game.player.hitbox.height, (0, 0, 0, 0), (255, 0, 0, 255), 1).draw(screen, (game.player.hitbox.x, game.player.hitbox.y))
             for enemy in game.enemies:
-                draw_alpha_rect(enemy.hitbox, 1, (0, 255, 0), screen)
+                box(enemy.hitbox.width, enemy.hitbox.height, (0, 0, 0, 0), (0, 255, 0, 255), 1).draw(screen, (enemy.hitbox.x, enemy.hitbox.y))
             for projectil in game.projectiles:
-                draw_alpha_rect(projectil.hitbox, 1, (0, 0, 255), screen)
+                box(projectil.hitbox.width, projectil.hitbox.height, (0, 0, 0, 0), (0, 0, 255, 255), 1).draw(screen, (projectil.hitbox.x, projectil.hitbox.y))
             for pw in game.pw:
-                draw_alpha_rect(pw.hitbox, 1, (255, 255, 0), screen)
+                box(pw.hitbox.width, pw.hitbox.height, (0, 0, 0, 0), (255, 255, 0, 255), 1).draw(screen, (pw.hitbox.x, pw.hitbox.y))
 
 # Inicialização rápida do jogo
 game = Game()

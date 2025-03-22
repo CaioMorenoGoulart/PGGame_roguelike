@@ -29,8 +29,7 @@ class Button:
 
     def draw(self, screen, mouse_pos):
         if self.box_color != "null":
-            auto.draw_alpha_box(self.box_width, self.box_height,  self.box_color, screen, (self.x, self.y))
-
+            auto.box(self.box_width, self.box_height, self.box_color, (0,0,0,100), 2).draw(screen, (self.x, self.y))
         screen.draw.text(
             self.text,
             center=(self.x + self.box_width // 2, self.y + self.box_height // 2),
@@ -59,7 +58,8 @@ class Slider:
         self.indicator_radius = 10
 
     def draw(self, screen):
-        auto.draw_alpha_box(self.screen_width, self.screen_height, alpha_color= (100, 100, 100), screen= screen, pos= (self.x, self.y))
+        auto.box(self.screen_width, self.screen_height, (100, 100, 100)).draw(screen, (self.x, self.y))
+
         indicator_position = self.x + int(self.value * self.screen_width)
         screen.draw.filled_circle(
             (indicator_position, self.y + self.screen_height // 2),
@@ -110,7 +110,7 @@ class Dropdown:
 
         if self.open:
             for i, option in enumerate(self.options):
-                auto.draw_alpha_box(self.screen_width, self.screen_height, alpha_color= (70, 70, 70), screen= screen, pos= (self.x, self.y_open + (i + 1) * self.screen_height))
+                auto.box(self.screen_width, self.screen_height, (70, 70, 70)).draw(screen, (self.x, self.y_open + (i + 1) * self.screen_height))
                 screen.draw.text(
                     option,
                     center=(
@@ -124,7 +124,8 @@ class Dropdown:
                         else self.text_color
                     ),
                 )
-        auto.draw_alpha_box(self.screen_width, self.screen_height, alpha_color= (50, 50, 50), screen= screen, pos= (self.x, self.y))
+
+        auto.box(self.screen_width, self.screen_height, (70, 70, 70)).draw(screen, (self.x, self.y))
         screen.draw.text(
             self.options[self.selected_option],
             center=(self.x + self.screen_width // 2, self.y + self.screen_height // 2),

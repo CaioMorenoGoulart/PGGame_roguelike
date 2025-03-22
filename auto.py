@@ -1,20 +1,37 @@
 from pygame import Surface, SRCALPHA, Rect
 
 # Caixa com transparencia
-def draw_alpha_box(width, height, alpha_color, screen , pos):
-    box = Surface((width, height), SRCALPHA)
-    box.fill(alpha_color)
-    screen.surface.blit(box, pos)
 
-def draw_alpha_rect(rect, w, alpha, screen):
-    box = [
-        Rect(rect.topleft[0], rect.topleft[1], w, rect.height - w),
-        Rect(rect.topleft[0] + w, rect.topleft[1], rect.width - w*2, w),
-        Rect(rect.topright[0] - w, rect.topright[1], w, rect.height),
-        Rect(rect.bottomleft[0], rect.bottomleft[1] - w, rect.width - w, w)]
-    
-    for i in box:
-        draw_alpha_box(i.width, i.height, alpha, screen, i.topleft)
+class box:
+    def __init__(self, width, height, fill_color, border_color = "", border  = 0, border_top = 0, border_rigth  = 0, border_botton  = 0, border_left  = 0, pos =(0, 0)):
+        self.rect = Rect( pos[0], pos[1], width, height)
+        self.fill_color = fill_color
+        self.border_color = border_color
+        self.border = border
+        self.border_top = border_top
+        self.border_rigth = border_rigth
+        self.border_botton = border_botton
+        self.border_left = border_left
+
+    def draw_alpha_box(self, width, height, pos, screen, color):
+        box = Surface((width, height), SRCALPHA)
+        box.fill(color)
+        screen.surface.blit(box, pos)
+
+    def draw_alpha_rect(self, screen):
+        box = [
+            Rect(self.rect.topleft[0], self.rect.topleft[1], self.border, self.rect.height - self.border),
+            Rect(self.rect.topleft[0] + self.border, self.rect.topleft[1], self.rect.width - self.border*2, self.border),
+            Rect(self.rect.topright[0] - self.border, self.rect.topright[1], self.border, self.rect.height),
+            Rect(self.rect.bottomleft[0], self.rect.bottomleft[1] - self.border, self.rect.width - self.border, self.border)]
+        for i in box:
+            self.draw_alpha_box(i.width, i.height, i.topleft, screen, self.border_color)
+
+    def draw(self, screen, pos = (0,0)):
+        self.rect = Rect( pos[0], pos[1], self.rect.width, self.rect.height)
+        self.draw_alpha_box(self.rect.width, self.rect.height, self.rect.topleft, screen,  self.fill_color)
+        if self.border > 0:
+            self.draw_alpha_rect(screen)
 
 def listing(texts):
     from elements import Button

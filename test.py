@@ -1,6 +1,9 @@
 import pgzrun
+import math
 from pygame import SRCALPHA,Surface, Rect, mouse as mice
+from pygame.draw import lines, rect
 from config import WIDTH, HEIGHT
+from auto import box
 
 screen: any
 
@@ -8,6 +11,7 @@ screen: any
 class mouses:
     def __init__(self):
         self.pos = (0,0)
+        self.center = (0,0)
         self.x = 0
         self.y = 0
         self.width = 50
@@ -15,6 +19,7 @@ class mouses:
     def update(self, pos):
         self.pos = pos
         self.x, self.y = pos
+        self.center = (self.x - self.width/2, self.y - self.height/2)
 
 
 mouse = mouses()
@@ -32,45 +37,56 @@ from map import Map
 mapa = Map()
 mapa.draw_map()
 
-# Caixa com transparencia
-def draw_alpha_box(width, height, alpha_color, screen , pos):
-    box = Surface((width, height), SRCALPHA)
-    box.fill(alpha_color)
-    screen.surface.blit(box, pos)
 
-def draw_alpha_rect(rect, w, alpha, screen):
-    box = [
-        Rect(rect.topleft[0], rect.topleft[1], w, rect.height - w),
-        Rect(rect.topleft[0] + w, rect.topleft[1], rect.width - w*2, w),
-        Rect(rect.topright[0] - w, rect.topright[1], w, rect.height),
-        Rect(rect.bottomleft[0], rect.bottomleft[1] - w, rect.width - w, w)]
+
+# def dist(ponto1, ponto2):
+#     x1, y1 = ponto1
+#     x2, y2 = ponto2
+#     return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+
+# def bezier_curve(p0, p1, p2, alpha=(0, 0, 0, 0), steps=0, w = 1):
+#     if steps == 0:
+#         steps = int(dist(p0, p1) + dist(p1, p2))
+#         print(steps)
+#     points = [box]
+#     for t in range(steps):
+#         t /= steps
+#         x = (1 - t) ** 2 * p0[0] + 2 * (1 - t) * t * p1[0] + t ** 2 * p2[0]
+#         y = (1 - t) ** 2 * p0[1] + 2 * (1 - t) * t * p1[1] + t ** 2 * p2[1]
+#         points.append(box(w, w, alpha, pos=(x, y)))
     
-    for i in box:
-        draw_alpha_box(i.width, i.height, alpha, screen, i.topleft)
+#     for i in points:
+#         i.draw(screen)
 
+caixa_2 = box(mouse.width, mouse.height, (255, 255, 255, 200), (0, 0, 0, 150), 10)
+texto = f"{mapa.pos_in_map(mouse)}"
 
 def draw():
     screen.clear()
     mapa.draw()
 
-    # Definindo Texto
-    texto = f"{mapa.pos_in_map(mouse)}"
-
-    # Definindo tamanho da Caixa
-    caixa = Rect(mouse.x - mouse.width/2, mouse.y - mouse.height/2, mouse.width, mouse.height)
-    caixa.bottomleft
     # Desenhando Caixa
-    draw_alpha_box(mouse.width, mouse.height, (255, 255, 255, 200), screen ,caixa.topleft)
-
-    # Desenhando Contorno
-    # screen.draw.rect(caixa, "#000000")
-
-    draw_alpha_rect
-    (caixa, 10, (0, 0, 0, 200), screen)
+    caixa_2.draw(screen, mouse.center)
 
     # Desenhando Texto
     texto = f"{mapa.pos_in_map(mouse)}"
-    screen.draw.text(texto[0], center=caixa.center, color="#000000", fontname=fonte, fontsize=tamanho_fonte, alpha=0.8)
+    screen.draw.text(texto[0], center=caixa_2.rect.center, color="#000000", fontname=fonte, fontsize=tamanho_fonte, alpha=0.8)
+
+
+    # Definir pontos de controle
+
+    # p0 = (100, 400)  
+    # p1 = (200, 100)  
+    # p2 = (300, 400)  
+
+    # draw_alpha_box(1,1,(255,0,0),screen, caixa.midtop)
+    # draw_alpha_box(1,1,(255,0,0),screen, caixa.midright)
+    # draw_alpha_box(1,1,(255,0,0),screen, caixa.midleft)
+    # draw_alpha_box(1,1,(255,0,0),screen, caixa.midbottom)
+
+    # bezier_curve(caixa.midleft,caixa.midtop,caixa.midright, alpha=(0, 0, 0), w= 1)
+    # bezier_curve(caixa.midleft,caixa.midbottom,caixa.midright, alpha=(0, 0, 0), w= 1)
+    # bezier_curve(p0,p1,p2, alpha=(0, 0, 0, 255), w= 1)
 
 
 pgzrun.go()
