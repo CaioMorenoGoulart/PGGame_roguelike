@@ -47,4 +47,7 @@ class Menu_screen:
         import auto
         self.buttons = auto.listing(self.texts)
 
+    def draw(self, screen, pos):
+        [i.draw(screen, pos) for i in self.buttons]
+
 menu = Menu_screen()

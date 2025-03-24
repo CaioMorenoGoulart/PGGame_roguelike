@@ -83,4 +83,13 @@ class Menu_screen:
         import auto
         self.buttons = auto.listing(self.texts)
 
+    def draw(self, screen, pos, score, time):
+        for i in self.buttons:
+            if "$pontuacao$" in i.text:
+                i.text = i.text.replace("$pontuacao$", f"{score}")
+            if "$tempo$" in i.text:
+                i.text = i.text.replace("$tempo$", f"{time}")
+            i.draw(screen, pos)
+        [i.draw(screen, pos) for i in self.buttons]
+
 menu = Menu_screen()

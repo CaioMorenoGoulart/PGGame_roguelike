@@ -24,6 +24,8 @@ class Power_ups:
         elif self.tipe == PW_MOVIMENT_SPEED:
             if game.speed_moviment < 0.4:
                 game.speed_moviment *= self.pw
+        elif self.tipe == "exp":
+            game.score += self.pw
         
     def draw(self):
         self.tile.draw()
@@ -41,6 +43,10 @@ class Power_ups:
             self.pw = 1.01
             self.text = (f"+ 0.1% de movimento")
             self.frames = Set_images(string= Dir_images.Pw.dir + "move_speed_", n_frames= 1).images
+        elif self.tipe == "exp":
+            self.pw = random.randrange(1,10)
+            self.text = (f"+ {self.pw}% de experiência")
+            self.frames = Set_images(string= Dir_images.Pw.dir + "cadence_", n_frames= 1).images
         
         self.tile = Actor(self.frames[self.current_frame])
         self.tile.scale = self.scale
@@ -147,11 +153,10 @@ class Game:
         self.draw_hitbox = False
         self.status = STATE_MENU
         self.paused = False
-        self.difficulty_score = 10
+        self.difficulty_score = 100
         self.press = False
         self.charging = False
         self.charging_time = 0
-        self.config_slide = slide_config(WIDTH, HEIGHT, MUSIC_VOL, EFFECT_VOL)
         self.animation_speed = 0.05  # Tempo entre cada frame (em segundos)
         self.player = Entity(WIDTH // 2, HEIGHT // 2, Dir_images.Characters.Player.Girl1.Waiting.Down.images)
         self.enemy_animation_timer = 0  # Temporizador para a animação
@@ -191,8 +196,7 @@ class Game:
 
     def draw_menu(self):
         import screens.menu
-        self.opt = screens.menu.menu.buttons
-        [i.draw(screen, MOUSE_POS) for i in self.opt]
+        self.opt = screens.menu.menu
 
     def call_settings(self):
         if self.status == STATE_MENU or self.status == STATE_GAME_OVER:
@@ -207,21 +211,10 @@ class Game:
         elif self.status == STATE_PAUSED_CONFIG:
             import screens.config_pause
             self.opt = screens.config_pause.menu
-        self.opt.dropdown.draw(screen, MOUSE_POS)
-
-        [i.draw(screen) for i in self.config_slide]
-
-        for i in self.opt.buttons:
-            if "Volume Música:" in i.text:
-                i.text = "Volume Música: " f"{int(MUSIC_VOL * 100)}%"
-            if "Volume Efeitos:" in i.text:
-                i.text = "Volume Efeitos: " f"{int(EFFECT_VOL * 100)}%"
-            i.draw(screen, MOUSE_POS)
 
     def draw_pause(self):
         import screens.pause
-        self.opt = screens.pause.menu.buttons
-        [i.draw(screen, MOUSE_POS) for i in self.opt]
+        self.opt = screens.pause.menu
 
     def resume_game(self):
         self.status = STATE_PLAYING
@@ -258,6 +251,7 @@ class Game:
         self.text_pw_list = []
         self.projectiles = []
         self.pw = []
+        self.exp = []
         self.player.tile.pos = (WIDTH / 2 - self.player.tile.width, HEIGHT / 2 - self.player.tile.height)
         self.time_elapsed = 0
         self.shoot_cooldown = 1
@@ -268,7 +262,7 @@ class Game:
         pgzero.music.play('music.wav')
 
     def enemy(self):
-        self.difficulty_score = 10
+        self.difficulty_score = 100
         self.enemies = []
         self.enemy_speed = .1
         self.enemy_spawn_interval = 2
@@ -366,7 +360,7 @@ class Game:
                     enemy.frames = Set_images(string= Dir_images.Characters.Player.Enemy.dir + "bomb/bomb_", n_frames= 4).images
 
             if enemy.project_hit_cooldown > self.enemy_remove_interval:
-                self.score += 1
+                self.pw.append(Power_ups(enemy.tile.x, enemy.tile.y, "exp", 1.5))
                 self.enemies.remove(enemy)
             for projectile in self.projectiles:
                 if projectile.speed > 0 and enemy.project_hit_cooldown == 0:
@@ -383,13 +377,7 @@ class Game:
 
     def draw_game_over(self):
         import screens.game_over
-        self.opt = screens.game_over.menu.buttons
-        for i in self.opt:
-            if "$pontuacao$" in i.text:
-                i.text = i.text.replace("$pontuacao$", f"{self.score}")
-            if "$tempo$" in i.text:
-                i.text = i.text.replace("$tempo$", f"{time_format(self.total_time)}")
-            i.draw(screen, MOUSE_POS)
+        self.opt = screens.game_over.menu
 
     def draw_player(self):
         self.player.draw()
@@ -404,17 +392,43 @@ class Game:
             pw.draw()
 
     def draw_hud(self):
+
         screen.draw.text(
-            f"Pontuação: {self.score}",
-            (10, 10),
-            fontsize=FONT_SIZE_TEXTS,
+            f"Exp: {(self.score % 100):.0f}%",
+            topright = (WIDTH*.1 - 2, 2),
+            fontsize=FONT_SIZE_ITENS,
             color="white",
             ocolor="black",
             owidth=1
         )
         screen.draw.text(
+            f"Nivel {int(self.score / 100)}",
+            centerx = WIDTH/2,
+            bottom = CELL_SIZE,
+            fontsize=FONT_SIZE_TEXTS,
+            color="white",
+            ocolor="black",
+            owidth=1
+        )
+        back_exp_box = box(WIDTH*.8, 5, (0, 0, 0, 100), (0,0,0),1)
+        back_exp_box.draw(screen, (WIDTH*.1, 5))
+
+        exp_box = any
+        if self.score != 0:
+            exp_box = box(((back_exp_box.rect.width/100) * (self.score % 100)) - 2, 3, (0, 0, 255,150), (0,0,0))
+
+            if self.score % 100 == 0:
+                exp_box = box(back_exp_box.rect.width - 2, 3, (0, 0, 255, 150), (0,0,0))
+
+            exp_box.draw(screen, (WIDTH*.1 + 1, 6))
+
+            
+
+        
+        screen.draw.text(
             f"Tempo de jogo: {time_format(self.total_time)}",
-            (WIDTH - 250, 10),
+            right = WIDTH - 5,
+            bottom = CELL_SIZE,
             fontsize=FONT_SIZE_TEXTS,
             color="white",
             ocolor="black",
@@ -495,8 +509,15 @@ class Game:
                     ocolor="black",
                     owidth=2,
                     alpha= 100)
-        
-        # text_test = screen.draw.text("All together now:\nCombining the above options", center=(WIDTH/2,CELL_SIZE), fontsize=30, color="#AAFF00", gcolor="#66AA00", owidth=1.5, ocolor="black", alpha=0.8)
+
+        if game.draw_hitbox:
+            box(game.player.hitbox.width, game.player.hitbox.height, (0, 0, 0, 0), (255, 0, 0, 255), 1).draw(screen, (game.player.hitbox.x, game.player.hitbox.y))
+            for enemy in game.enemies:
+                box(enemy.hitbox.width, enemy.hitbox.height, (0, 0, 0, 0), (0, 255, 0, 255), 1).draw(screen, (enemy.hitbox.x, enemy.hitbox.y))
+            for projectil in game.projectiles:
+                box(projectil.hitbox.width, projectil.hitbox.height, (0, 0, 0, 0), (0, 0, 255, 255), 1).draw(screen, (projectil.hitbox.x, projectil.hitbox.y))
+            for pw in game.pw:
+                box(pw.hitbox.width, pw.hitbox.height, (0, 0, 0, 0), (255, 255, 0, 255), 1).draw(screen, (pw.hitbox.x, pw.hitbox.y))
 
         img_arrow_cooldown.draw()
         img_skill_cooldown.draw()
@@ -507,8 +528,6 @@ class Game:
             move_pixel = 0
         else:
             move_pixel = self.speed_moviment
-        # if (keyboard.lshift):
-        #     move_pixel *= 1.5
         dx = MOUSE_POS[0] - self.player.tile.x
         dy = MOUSE_POS[1] - self.player.tile.y
         magnitude = math.sqrt(dx**2 + dy**2)
@@ -594,8 +613,8 @@ class Game:
                     enemy.update_frames()
             if self.charging:
                 self.charging_time = min(self.charging_time + dt, 2)
-            if self.elapsed_time >= 1 and self.difficulty_score < self.score:
-                self.difficulty_score += 10
+            if self.elapsed_time >= 1 and self.difficulty_score <= self.score:
+                self.difficulty_score += 100
                 self.increase_difficulty()
                 self.spawn_pw()
                 self.elapsed_time = 0
@@ -666,17 +685,17 @@ def actions(action):
 def on_mouse_down(pos, button):
     if button == mouse.LEFT:
         if game.status == STATE_MENU:
-            for button in game.opt:
+            for button in game.opt.buttons:
                 if button.is_hovered(pos):
                     actions(button.action)
         elif game.status == STATE_SETTINGS or game.status == STATE_PAUSED_CONFIG:
             for button in game.opt.buttons:
                 if button.is_hovered(pos):
                     actions(button.action)
-            if game.config_slide[0].is_hovered_indicator(pos):
-                game.config_slide[0].dragging = True
-            if game.config_slide[1].is_hovered_indicator(pos):
-                game.config_slide[1].dragging = True
+            if game.opt.config_slide[0].is_hovered_indicator(pos):
+                game.opt.config_slide[0].dragging = True
+            if game.opt.config_slide[1].is_hovered_indicator(pos):
+                game.opt.config_slide[1].dragging = True
             if game.opt.dropdown.is_hovered(pos) and not game.opt.dropdown.open:
                 game.opt.dropdown.open = True
             elif game.opt.dropdown.open:
@@ -686,11 +705,11 @@ def on_mouse_down(pos, button):
         elif game.status == STATE_PLAYING:
             game.atack_pressed()
         elif game.status == STATE_PAUSED:
-            for button in game.opt:
+            for button in game.opt.buttons:
                 if button.is_hovered(pos):
                     actions(button.action)
         elif game.status == STATE_GAME_OVER:
-            for button in game.opt:
+            for button in game.opt.buttons:
                 if button.is_hovered(pos):
                     actions(button.action)
 
@@ -698,8 +717,8 @@ def on_mouse_down(pos, button):
 def on_mouse_up(pos, button):
     if button == mouse.LEFT:
         if game.status == STATE_SETTINGS or game.status == STATE_PAUSED_CONFIG:
-            game.config_slide[0].dragging = False
-            game.config_slide[1].dragging = False
+            game.opt.config_slide[0].dragging = False
+            game.opt.config_slide[1].dragging = False
         if game.status == STATE_PLAYING:
             if game.charging:
                 game.atack_pressed()
@@ -710,13 +729,13 @@ def on_mouse_move(pos):
     global MOUSE_POS, MUSIC_VOL, EFFECT_VOL
     MOUSE_POS = pos
     if game.status == STATE_SETTINGS or game.status == STATE_PAUSED_CONFIG:
-        if game.config_slide[0].dragging:
-            game.config_slide[0].update_value(pos)
-            MUSIC_VOL = game.config_slide[0].value
+        if game.opt.config_slide[0].dragging:
+            game.opt.config_slide[0].update_value(pos)
+            MUSIC_VOL = game.opt.config_slide[0].value
             pgzero.music.set_volume(MUSIC_VOL)
-        if game.config_slide[1].dragging:
-            game.config_slide[1].update_value(pos)
-            EFFECT_VOL = game.config_slide[1].value
+        if game.opt.config_slide[1].dragging:
+            game.opt.config_slide[1].update_value(pos)
+            EFFECT_VOL = game.opt.config_slide[1].value
             sounds.shot.set_volume(EFFECT_VOL)
 
 
@@ -775,28 +794,23 @@ def draw():
     if game.status == STATE_MENU:
         screen.clear()
         game.draw_menu()
+        game.opt.draw(screen, MOUSE_POS)
     elif game.status == STATE_SETTINGS or game.status == STATE_PAUSED_CONFIG:
         screen.clear()
         game.draw_settings()
+        game.opt.draw(screen, MOUSE_POS, MUSIC_VOL * 100, EFFECT_VOL * 100)
     elif game.status == STATE_PAUSED:
         game.draw_pause()
+        game.opt.draw(screen, MOUSE_POS)
     elif game.status == STATE_GAME_OVER:
         screen.clear()
         game.draw_game_over()
+        game.opt.draw(screen, MOUSE_POS, game.score, time_format(game.total_time))
     if game.status == STATE_PLAYING:
         screen.clear()
         game.mapa.draw()
         game.draw_player()
         game.draw_hud()
-        if game.draw_hitbox:
-            box(game.player.hitbox.width, game.player.hitbox.height, (0, 0, 0, 0), (255, 0, 0, 255), 1).draw(screen, (game.player.hitbox.x, game.player.hitbox.y))
-            for enemy in game.enemies:
-                box(enemy.hitbox.width, enemy.hitbox.height, (0, 0, 0, 0), (0, 255, 0, 255), 1).draw(screen, (enemy.hitbox.x, enemy.hitbox.y))
-            for projectil in game.projectiles:
-                box(projectil.hitbox.width, projectil.hitbox.height, (0, 0, 0, 0), (0, 0, 255, 255), 1).draw(screen, (projectil.hitbox.x, projectil.hitbox.y))
-            for pw in game.pw:
-                box(pw.hitbox.width, pw.hitbox.height, (0, 0, 0, 0), (255, 255, 0, 255), 1).draw(screen, (pw.hitbox.x, pw.hitbox.y))
-
 # Inicialização rápida do jogo
 game = Game()
 pgzrun.go()

@@ -88,5 +88,6 @@ def draw():
     # bezier_curve(caixa.midleft,caixa.midbottom,caixa.midright, alpha=(0, 0, 0), w= 1)
     # bezier_curve(p0,p1,p2, alpha=(0, 0, 0, 255), w= 1)
 
+    # text_test = screen.draw.text("All together now:\nCombining the above options", center=(WIDTH/2,CELL_SIZE), fontsize=30, color="#AAFF00", gcolor="#66AA00", owidth=1.5, ocolor="black", alpha=0.8)
 
 pgzrun.go()

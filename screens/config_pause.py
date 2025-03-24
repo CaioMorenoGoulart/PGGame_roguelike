@@ -48,5 +48,17 @@ class Menu_screen:
         import elements
         self.dropdown = elements.Dropdown(WIDTH // 2 - 100, HEIGHT // 2 - 50, 200, RESOLUTION_OPTIONS, SCRENN_OPT, FONT_SIZE_MENU, FONT_COLOR_MENU, FONT_COLOR_HOVER)
         self.buttons = auto.listing(self.texts)
+        self.config_slide = auto.slide_config(WIDTH, HEIGHT, MUSIC_VOL, EFFECT_VOL)
+
+    def draw(self, screen, pos, music, efect):
+        self.dropdown.draw(screen, pos)
+        for i in self.buttons:
+            if "Volume Música:" in i.text:
+                i.text = "Volume Música: " f"{music:0.0f}%"
+            if "Volume Efeitos:" in i.text:
+                i.text = "Volume Efeitos: " f"{efect:0.0f}%"
+            i.draw(screen, pos)
+        [i.draw(screen) for i in self.config_slide]
+
 
 menu = Menu_screen()
