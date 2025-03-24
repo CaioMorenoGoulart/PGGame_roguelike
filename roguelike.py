@@ -26,6 +26,7 @@ class Power_ups:
                 game.speed_moviment *= self.pw
         elif self.tipe == "exp":
             game.score += self.pw
+            game.play_sound_volume(sound="gem",vol=.5)
         
     def draw(self):
         self.tile.draw()
@@ -46,7 +47,7 @@ class Power_ups:
         elif self.tipe == "exp":
             self.pw = random.randrange(1,10)
             self.text = (f"+ {self.pw}% de experiência")
-            self.frames = Set_images(string= Dir_images.Pw.dir + "cadence_", n_frames= 1).images
+            self.frames = Set_images(string= Dir_images.Pw.dir + "exp_", n_frames= 8).images
         
         self.tile = Actor(self.frames[self.current_frame])
         self.tile.scale = self.scale
@@ -360,7 +361,7 @@ class Game:
                     enemy.frames = Set_images(string= Dir_images.Characters.Player.Enemy.dir + "bomb/bomb_", n_frames= 4).images
 
             if enemy.project_hit_cooldown > self.enemy_remove_interval:
-                self.pw.append(Power_ups(enemy.tile.x, enemy.tile.y, "exp", 1.5))
+                self.pw.append(Power_ups(enemy.tile.x, enemy.tile.y, "exp", .5))
                 self.enemies.remove(enemy)
             for projectile in self.projectiles:
                 if projectile.speed > 0 and enemy.project_hit_cooldown == 0:
