@@ -5,7 +5,7 @@ a = Analysis(
     ['roguelike.py'],
     pathex=[],
     binaries=[],
-    datas=[("images", "images"),("sounds", "sounds"),("music", "music"),("fonts", "fonts"),("screens", "screens"),],
+    datas=[("images", "images"),("sounds", "sounds"),("music", "music"),("fonts", "fonts"),("screens", "screens"), ("scripts", "scripts"),],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
