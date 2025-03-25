@@ -4,13 +4,13 @@ import random
 import pgzero
 from pygame import Rect, Surface, SRCALPHA
 import pgzrun
-from image_dir import Set_images, Dir_images, Player, Dir
+from scripts.image_dir import Set_images, Dir_images, Player, Dir
 import screens
-from auto import *
-from elements import Button, Float_texts
+from scripts.auto import *
+from scripts.elements import Button, Float_texts
 
 import json
-from pgzhelper import Actor
+from scripts.pgzhelper import Actor
 
 Button
 Float_texts

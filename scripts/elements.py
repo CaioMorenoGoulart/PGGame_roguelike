@@ -1,4 +1,4 @@
-import auto
+import scripts.auto as auto
 
 class Button:
     def __init__(

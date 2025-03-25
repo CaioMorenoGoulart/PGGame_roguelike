@@ -1,5 +1,5 @@
-from config import CELL_SIZE, ROWS, COLUMNS, SCAL, Actor, random
-from image_dir import Set_images, Dir_images
+from scripts.config import CELL_SIZE, ROWS, COLUMNS, SCAL, Actor, random
+from scripts.image_dir import Set_images, Dir_images
 
 # Criação do Mapa
 class Map:

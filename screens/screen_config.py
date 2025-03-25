@@ -1,5 +1,5 @@
-from style import *
-from config import WIDTH, HEIGHT, STATE_MENU, RESOLUTION_OPTIONS, SCRENN_OPT, MUSIC_VOL, EFFECT_VOL
+from scripts.style import *
+from scripts.config import WIDTH, HEIGHT, STATE_MENU, RESOLUTION_OPTIONS, SCRENN_OPT, MUSIC_VOL, EFFECT_VOL
 
 class Menu_screen:
     def __init__(self):
@@ -44,8 +44,8 @@ class Menu_screen:
                 }
             ],
         }
-        import elements
-        import auto
+        import scripts.elements as elements
+        import scripts.auto as auto
         self.dropdown = elements.Dropdown(WIDTH // 2 - 100, HEIGHT // 2 - 50, 200, RESOLUTION_OPTIONS, SCRENN_OPT, FONT_SIZE_MENU, FONT_COLOR_MENU, FONT_COLOR_HOVER)
         self.buttons = auto.listing(self.texts)
         self.config_slide = auto.slide_config(WIDTH, HEIGHT, MUSIC_VOL, EFFECT_VOL)

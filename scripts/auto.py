@@ -34,7 +34,7 @@ class box:
             self.draw_alpha_rect(screen)
 
 def listing(texts):
-    from elements import Button
+    from scripts.elements import Button
     list = []
     for text in texts["Texts"]:  
         list.append(Button(
@@ -50,7 +50,7 @@ def listing(texts):
     return list
 
 def slide_config(WIDTH, HEIGHT, MUSIC_VOL, EFFECT_VOL):
-    from elements import Slider
+    from scripts.elements import Slider
     return [Slider(WIDTH // 2 - 100, HEIGHT // 2 + 120, 200, MUSIC_VOL),
             Slider(WIDTH // 2 - 100, HEIGHT // 2 + 170, 200, EFFECT_VOL)]
 

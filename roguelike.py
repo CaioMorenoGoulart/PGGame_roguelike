@@ -1,5 +1,5 @@
-from style import *
-from config import *
+from scripts.style import *
+from scripts.config import *
 
 import os, sys
 dirpath = os.getcwd()
@@ -249,7 +249,7 @@ class Game:
         save_settings(self.settings)
 
     def start_game(self):
-        from map import Map
+        from scripts.map import Map
         self.mapa = Map()
         self.mapa.draw_map()
         self.status = STATE_PLAYING

@@ -1,5 +1,5 @@
-from style import *
-from config import WIDTH, HEIGHT, STATE_RESUME_GAME, STATE_PAUSED_CONFIG, STATE_MENU
+from scripts.style import *
+from scripts.config import WIDTH, HEIGHT, STATE_RESUME_GAME, STATE_PAUSED_CONFIG, STATE_MENU
 
 class Menu_screen:
     def __init__(self):
@@ -44,7 +44,7 @@ class Menu_screen:
                 },
             ],
         }
-        import auto
+        import scripts.auto as auto
         self.buttons = auto.listing(self.texts)
 
     def draw(self, screen, pos):
