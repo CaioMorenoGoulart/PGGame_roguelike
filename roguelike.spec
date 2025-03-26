@@ -1,12 +1,19 @@
-# -*- mode: python ; coding: utf-8 -*-
+# -- mode: python ; coding: utf-8 --
+from PyInstaller.utils.hooks import collect_all
+
+datas = []
+tmp_ret = collect_all('pgzero')
+binaries= []
+hiddenimports= []
+datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
 
 a = Analysis(
     ['roguelike.py'],
     pathex=[],
-    binaries=[],
-    datas=[("images", "images"),("sounds", "sounds"),("music", "music"),("fonts", "fonts"),("screens", "screens"), ("scripts", "scripts"),],
-    hiddenimports=[],
+    binaries=binaries,
+    datas=datas+ [("fonts","fonts"),("images","images"),("music","music"),("sounds","sounds"),],
+    hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

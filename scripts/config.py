@@ -5,7 +5,6 @@ import pgzero
 from pygame import Rect, Surface, SRCALPHA
 import pgzrun
 from scripts.image_dir import Set_images, Dir_images, Player, Dir
-import screens
 from scripts.auto import *
 from scripts.elements import Button, Float_texts
 
@@ -14,7 +13,6 @@ from scripts.pgzhelper import Actor
 
 Button
 Float_texts
-screens
 Surface
 Rect
 math

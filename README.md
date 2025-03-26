@@ -1,17 +1,21 @@
 # PGGame_roguelike
 PGGame
 
-Criar .venv
+# Criar .venv
 
 python3 -m venv .venv
 
-Ativar .venv
+# Ativar .venv
 
 source .venv/bin/activate
 
 
-Instalar Dependencias
+# Instalar Dependencias
 
 sudo apt install python3-pgzero
-
 sudo apt install python3-pygame
+sudo apt install pyinstaller
+
+# Exportar Executavel
+
+pyinstaller roguelike.spec

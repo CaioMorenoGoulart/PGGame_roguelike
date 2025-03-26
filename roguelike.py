@@ -203,8 +203,8 @@ class Game:
             pgzero.music.play(music)
 
     def draw_menu(self):
-        import screens.menu
-        self.opt = screens.menu.menu
+        import scripts.screens.menu
+        self.opt = scripts.screens.menu.menu
 
     def call_settings(self):
         if self.status == STATE_MENU or self.status == STATE_GAME_OVER:
@@ -214,15 +214,15 @@ class Game:
 
     def draw_settings(self):
         if self.status == STATE_SETTINGS:
-            import screens.screen_config
-            self.opt = screens.screen_config.menu
+            import scripts.screens.screen_config
+            self.opt = scripts.screens.screen_config.menu
         elif self.status == STATE_PAUSED_CONFIG:
-            import screens.config_pause
-            self.opt = screens.config_pause.menu
+            import scripts.screens.config_pause
+            self.opt = scripts.screens.config_pause.menu
 
     def draw_pause(self):
-        import screens.pause
-        self.opt = screens.pause.menu
+        import scripts.screens.pause
+        self.opt = scripts.screens.pause.menu
 
     def resume_game(self):
         self.status = STATE_PLAYING
@@ -384,8 +384,8 @@ class Game:
         self.enemy_spawn_interval = max(0.5, self.enemy_spawn_interval - 0.1)
 
     def draw_game_over(self):
-        import screens.game_over
-        self.opt = screens.game_over.menu
+        import scripts.screens.game_over
+        self.opt = scripts.screens.game_over.menu
 
     def draw_player(self):
         self.player.draw()
