@@ -70,9 +70,11 @@ COLUMNS = WIDTH // CELL_SIZE
 ROWS = HEIGHT // CELL_SIZE
 
 # Estados de jogo
+STATE_PLAYER_SELECT = "player_select"
 STATE_PLAYING = "playing"
 STATE_RESUME_GAME = "resume_play"
 STATE_MENU = "menu"
+STATE_CONTROLLS = "controlls"
 STATE_PAUSED = "paused"
 STATE_PAUSED_CONFIG = "config_paused"
 STATE_SETTINGS = "config"

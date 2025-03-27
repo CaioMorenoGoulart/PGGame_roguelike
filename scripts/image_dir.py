@@ -76,10 +76,14 @@ class Dir_images:
             N_FRAMES = 0
             frame_time = 0
             class Enemy:
-                dir = Dir.Player.DIR + Dir.Characteres.ENEMY
+                _dir= Dir.Player.DIR
+                dir_= Dir.Characteres.ENEMY
+                dir = _dir + dir_
                 N_FRAMES = 2
             class Girl1:
-                dir = Dir.Player.DIR + Dir.Characteres.GIRL_1
+                _dir= Dir.Player.DIR
+                dir_= Dir.Characteres.GIRL_1
+                dir = _dir + dir_
                 N_FRAMES = 0
                 frame_time = 0
                 class Attack:
@@ -104,7 +108,9 @@ class Dir_images:
                     N_FRAMES = 0
                     frame_time = 0
             class Girl2:
-                dir = Dir.Player.DIR + Dir.Characteres.GIRL_2
+                _dir= Dir.Player.DIR
+                dir_= Dir.Characteres.GIRL_2
+                dir = _dir + dir_
                 N_FRAMES = 0
                 frame_time = 0
                 class Attack:
@@ -128,7 +134,9 @@ class Dir_images:
                     Side = Directions(Dir.Player.DIR, Dir.Characteres.GIRL_2, Dir.Actions.WALKING, Dir.Directions.SIDE, 6)
                     N_FRAMES = 0
             class Boy:
-                dir = Dir.Player.DIR + Dir.Characteres.BOY
+                _dir= Dir.Player.DIR
+                dir_= Dir.Characteres.BOY
+                dir = _dir + dir_
                 N_FRAMES = 0
                 frame_time = 0
                 class Attack:

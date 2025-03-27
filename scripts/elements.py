@@ -11,12 +11,19 @@ class Button:
         text_hover_color,
         text_size,
         bg_color="null",
+        bgh_color="null",
         width=200,
         height=50,
         alpha = 1,
+        dir= "center",
+        b = 2,
+        bc = (0,0,0,100),
+        bch = (0,0,0,0),
+        block = False
     ):
         self.x = x
         self.y = y
+        self.dir = dir
         self.text = text
         self.text_size = text_size
         self.text_color = text_color
@@ -26,25 +33,39 @@ class Button:
         self.box_width = width
         self.box_height = height
         self.box_color = bg_color
+        self.box_color_h = bgh_color
+        self.border = b
+        self.border_collor = bc
+        self.border_collor_h = bch
+        self.selected = False
+        self.block = block
 
     def draw(self, screen, mouse_pos):
         if self.box_color != "null":
-            auto.box(self.box_width, self.box_height, self.box_color, (0,0,0,100), 2).draw(screen, (self.x, self.y))
+            if not self.is_hovered(mouse_pos) and self.selected == False or self.box_color_h == "null":
+                auto.box(self.box_width, self.box_height, self.box_color, self.border_collor, self.border).draw(screen, (self.x, self.y))
+            else:
+                auto.box(self.box_width, self.box_height, self.box_color_h, self.border_collor_h, self.border).draw(screen, (self.x, self.y))
+            
         screen.draw.text(
             self.text,
-            center=(self.x + self.box_width // 2, self.y + self.box_height // 2),
+            center = (self.x + self.box_width // 2, self.y + self.box_height // 2),
             fontsize=self.text_size,
             alpha=self.alpha,
             color=(
                 self.text_hover_color if self.is_hovered(mouse_pos) else self.text_color
             ),
+            align=self.dir
         )
 
     def is_hovered(self, mouse_pos):
-        return (
-            self.x <= mouse_pos[0] <= self.x + self.box_width
-            and self.y <= mouse_pos[1] <= self.y + self.box_height
-        )
+        if self.block == True:
+            return False
+        else:
+            return (
+                self.x <= mouse_pos[0] <= self.x + self.box_width
+                and self.y <= mouse_pos[1] <= self.y + self.box_height
+            )
 
 
 class Slider:

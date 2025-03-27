@@ -166,10 +166,9 @@ class Game:
         self.charging = False
         self.charging_time = 0
         self.animation_speed = 0.05  # Tempo entre cada frame (em segundos)
-        self.player = Entity(WIDTH // 2, HEIGHT // 2, Dir_images.Characters.Player.Girl1.Waiting.Down.images)
         self.enemy_animation_timer = 0  # Temporizador para a animação
-        self.player_selected = ""
         self.player_animation_timer = 0
+        self.player_selected = any
         self.player_skill_timer = 2 
         self.player_skill_cooldown = 2
         self.animation = False
@@ -223,6 +222,14 @@ class Game:
     def draw_pause(self):
         import scripts.screens.pause
         self.opt = scripts.screens.pause.menu
+    
+    def draw_player_select(self):
+        import scripts.screens.player_selection
+        self.opt = scripts.screens.player_selection.menu
+
+    def draw_controlls(self):
+        import scripts.screens.controlls
+        self.opt = scripts.screens.controlls.menu
 
     def resume_game(self):
         self.status = STATE_PLAYING
@@ -253,13 +260,13 @@ class Game:
         self.mapa = Map()
         self.mapa.draw_map()
         self.status = STATE_PLAYING
-        self.player_selected = Dir_images.Characters.Player.Girl1
         self.player_health = 100
         self.score = 0
         self.text_pw_list = []
         self.projectiles = []
         self.pw = []
         self.exp = []
+        self.player = Entity(WIDTH // 2, HEIGHT // 2, self.player_selected.Waiting.Down.images)
         self.player.tile.pos = (WIDTH / 2 - self.player.tile.width, HEIGHT / 2 - self.player.tile.height)
         self.time_elapsed = 0
         self.shoot_cooldown = 1
@@ -586,13 +593,13 @@ class Game:
             getattr(sounds, "walking").stop()
 
         if self.charging:
-            self.set_player_frames(Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.ATTACK, dir_sprite).images, Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.ATTACK, dir_sprite).animation_time)
+            self.set_player_frames(Player(self.player_selected._dir , self.player_selected.dir_, Dir.Actions.ATTACK, dir_sprite).images, Player(self.player_selected._dir , self.player_selected.dir_, Dir.Actions.ATTACK, dir_sprite).animation_time)
         elif not move_keys and not self.charging:
             self.animation = True
-            self.set_player_frames(Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.WAITING, dir_sprite).images, Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.WAITING, dir_sprite).animation_time)
+            self.set_player_frames(Player(self.player_selected._dir , self.player_selected.dir_, Dir.Actions.WAITING, dir_sprite).images, Player(self.player_selected._dir , self.player_selected.dir_, Dir.Actions.WAITING, dir_sprite).animation_time)
         elif move_keys and not self.charging:
             self.animation = True
-            self.set_player_frames(Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.WALKING, dir_sprite).images, Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.WALKING, dir_sprite).animation_time)
+            self.set_player_frames(Player(self.player_selected._dir , self.player_selected.dir_, Dir.Actions.WALKING, dir_sprite).images, Player(self.player_selected._dir , self.player_selected.dir_, Dir.Actions.WALKING, dir_sprite).animation_time)
 
 
     def set_player_frames(self, frames, time):
@@ -664,13 +671,13 @@ class Game:
             if self.projectiles[len(self.projectiles) - 1].shoot_spawn_cooldown > self.shoot_cooldown:
                 self.animation = True
                 self.charging = True
-                self.set_player_frames(Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.ATTACK, dir_sprite).images, Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.ATTACK, dir_sprite).animation_time)
+                self.set_player_frames(Player(self.player_selected._dir , self.player_selected.dir_, Dir.Actions.ATTACK, dir_sprite).images, Player(self.player_selected._dir , self.player_selected.dir_, Dir.Actions.ATTACK, dir_sprite).animation_time)
                 self.charging_time = 0
                 self.play_sound_volume(ARROW_SOUDS[0])
         else:
             self.animation = True
             self.charging = True
-            self.set_player_frames(Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.ATTACK, dir_sprite).images, Player(Dir.Player.DIR , Dir.Characteres.GIRL_1, Dir.Actions.ATTACK, dir_sprite).animation_time)
+            self.set_player_frames(Player(self.player_selected._dir , self.player_selected.dir_, Dir.Actions.ATTACK, dir_sprite).images, Player(self.player_selected._dir , self.player_selected.dir_, Dir.Actions.ATTACK, dir_sprite).animation_time)
             self.charging_time = 0
             self.play_sound_volume(ARROW_SOUDS[0])
 
@@ -683,43 +690,48 @@ def actions(action):
         game.exit()
     elif action == STATE_MENU:
         game.back_to_menu()
+    elif action == STATE_PLAYER_SELECT:
+        game.status = STATE_PLAYER_SELECT
+    elif action == STATE_CONTROLLS:
+        game.status = STATE_CONTROLLS
     elif action == STATE_PLAYING:
         game.start_game()
     elif action == STATE_SETTINGS or action == STATE_PAUSED_CONFIG:
         game.call_settings()
     elif action == STATE_RESUME_GAME:
         game.resume_game()
+    elif any(
+    obj == action
+    for obj in Dir_images.Characters.Player.__dict__.values()
+    if isinstance(obj, type)  # Garante que é uma classe
+    ):        
+        game.player_selected = action
 
 def on_mouse_down(pos, button):
     if button == mouse.LEFT:
-        if game.status == STATE_MENU:
-            for button in game.opt.buttons:
-                if button.is_hovered(pos):
-                    actions(button.action)
-        elif game.status == STATE_SETTINGS or game.status == STATE_PAUSED_CONFIG:
-            for button in game.opt.buttons:
-                if button.is_hovered(pos):
-                    actions(button.action)
-            if game.opt.config_slide[0].is_hovered_indicator(pos):
-                game.opt.config_slide[0].dragging = True
-            if game.opt.config_slide[1].is_hovered_indicator(pos):
-                game.opt.config_slide[1].dragging = True
-            if game.opt.dropdown.is_hovered(pos) and not game.opt.dropdown.open:
-                game.opt.dropdown.open = True
-            elif game.opt.dropdown.open:
-                selected_option = game.opt.dropdown.select_option(pos)
-                if selected_option:
-                    game.change_resolution(selected_option)
-        elif game.status == STATE_PLAYING:
+        if game.status == STATE_PLAYING:
             game.atack_pressed()
-        elif game.status == STATE_PAUSED:
+        else:
+            if game.status == STATE_SETTINGS or game.status == STATE_PAUSED_CONFIG:
+                if game.opt.config_slide[0].is_hovered_indicator(pos):
+                    game.opt.config_slide[0].dragging = True
+                if game.opt.config_slide[1].is_hovered_indicator(pos):
+                    game.opt.config_slide[1].dragging = True
+                if game.opt.dropdown.is_hovered(pos) and not game.opt.dropdown.open:
+                    game.opt.dropdown.open = True
+                elif game.opt.dropdown.open:
+                    selected_option = game.opt.dropdown.select_option(pos)
+                    if selected_option:
+                        game.change_resolution(selected_option)
             for button in game.opt.buttons:
+                if any(button.selected for button in game.opt.buttons):
+                    button.block = False
                 if button.is_hovered(pos):
+                    for buttons in game.opt.buttons:
+                        buttons.selected = False                          
+                    button.selected = not button.selected 
                     actions(button.action)
-        elif game.status == STATE_GAME_OVER:
-            for button in game.opt.buttons:
-                if button.is_hovered(pos):
-                    actions(button.action)
+
 
 
 def on_mouse_up(pos, button):
@@ -799,23 +811,29 @@ def update(dt):
         getattr(sounds, "walking").stop()
     
 def draw():
+    var1, var2 = 0, 0
+
+    if game.status != STATE_PAUSED:
+        screen.clear()
     if game.status == STATE_MENU:
-        screen.clear()
         game.draw_menu()
-        game.opt.draw(screen, MOUSE_POS)
+    elif game.status == STATE_PLAYER_SELECT:
+        game.draw_player_select()
+    elif game.status == STATE_CONTROLLS:
+        game.draw_controlls()
     elif game.status == STATE_SETTINGS or game.status == STATE_PAUSED_CONFIG:
-        screen.clear()
         game.draw_settings()
-        game.opt.draw(screen, MOUSE_POS, MUSIC_VOL * 100, EFFECT_VOL * 100)
+        var1 = MUSIC_VOL * 100
+        var2 = EFFECT_VOL * 100
     elif game.status == STATE_PAUSED:
         game.draw_pause()
-        game.opt.draw(screen, MOUSE_POS)
     elif game.status == STATE_GAME_OVER:
-        screen.clear()
         game.draw_game_over()
-        game.opt.draw(screen, MOUSE_POS, game.score, time_format(game.total_time))
+        var1, var2 = game.score, time_format(game.total_time)
+    
+    game.opt.draw(screen, MOUSE_POS, var1, var2)
+
     if game.status == STATE_PLAYING:
-        screen.clear()
         game.mapa.draw()
         game.draw_player()
         game.draw_hud()

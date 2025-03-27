@@ -1,4 +1,5 @@
 from pygame import Surface, SRCALPHA, Rect
+from scripts.elements import Button
 
 # Caixa com transparencia
 
@@ -27,17 +28,64 @@ class box:
         for i in box:
             self.draw_alpha_box(i.width, i.height, i.topleft, screen, self.border_color)
 
-    def draw(self, screen, pos = (0,0)):
+    def draw(self, screen, pos = ""):
+        if not pos:
+            pos = (self.rect.x, self.rect.y)
         self.rect = Rect( pos[0], pos[1], self.rect.width, self.rect.height)
         self.draw_alpha_box(self.rect.width, self.rect.height, self.rect.topleft, screen,  self.fill_color)
         if self.border > 0:
             self.draw_alpha_rect(screen)
 
+class Space_betwen:
+    def __init__(self, n, height, y, space = 0, marg = 0, width = 0):
+        self.n = n
+        self.space = space
+        self.marg = marg
+        self.width = width
+        self.height = height
+        self.y = y
+        self.positions_x = []
+        self.update()
+
+    def update(self):
+        from scripts.config import WIDTH, HEIGHT
+        lost_space = (self.n-1)*self.space + self.marg*2
+
+        if self.width == 0:
+            self.width = (WIDTH - lost_space)/self.n
+        else:
+            self.width = min(self.width, (WIDTH - lost_space)/self.n)
+        # Definir margem se não for informada
+        if self.marg == 0:
+            self.marg = (WIDTH -((self.width * self.n) + (self.space * (self.n - 1))))/2
+        else:
+            self.marg = min(self.marg, (WIDTH -((self.width * self.n) + (self.space * (self.n - 1))))/2)
+        # Definir espaço entre caixas se não for informado
+        if self.space == 0:
+            self.space = (WIDTH -((self.width * self.n) + (self.marg*2)))/(self.n - 1)
+        else:
+            self.space = min(self.space, (WIDTH -((self.width * self.n) + (self.marg*2)))/(self.n - 1))
+
+        self.y = ((HEIGHT/3)-self.height if self.y == 0 else self.y)
+        for i in range(self.n):
+            self.positions_x.append(self.marg if i == 0 else self.positions_x[i-1] + self.space + self.width)
+
+
+    
+
+def characters_boxes(caracters, height, bgc, bc, b, y, space = 0, marg = 0, width = 0, bgch = (0,0,0,0), bch = (0,0,0,0)):
+
+    space_betwen = Space_betwen(len(caracters), height, y, space, marg, width)
+
+    button = []
+    for i, caracter in enumerate(caracters):
+        button.append(Button(space_betwen.positions_x[i], space_betwen.y, "", caracter, (255,255,255), (255,255,255), 0, bgc, bgch, width=space_betwen.width, height=space_betwen.height, b=b, bc=bc, bch=bch))
+    return button
+
 def listing(texts):
-    from scripts.elements import Button
-    list = []
+    texts_list = []
     for text in texts["Texts"]:  
-        list.append(Button(
+        texts_list.append(Button(
             text["Pos"][0],
             text["Pos"][1],
             text["Text"],
@@ -46,8 +94,13 @@ def listing(texts):
             text["Color_Hover"],
             text["Font_size"],
             text["BG_Color"],
+            width = text.get("width", 200),
+            height = text.get("height", 50),
+            alpha = text.get("alpha", 1),
+            dir = text.get("dir", "center"),
+            block= text.get("Block", False),
         ))
-    return list
+    return texts_list
 
 def slide_config(WIDTH, HEIGHT, MUSIC_VOL, EFFECT_VOL):
     from scripts.elements import Slider
