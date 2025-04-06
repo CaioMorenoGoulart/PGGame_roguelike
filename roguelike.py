@@ -19,7 +19,7 @@ class Power_ups:
         self.set_frames()
         self.n_frames = len(self.frames)
         self.tile.pos = (x, y)
-        self.update_frames(1/60)
+        self.update_frames(1/FPS)
         right_hitbox(self)
     def pick_up(self):
         if self.tipe == PW_HEALTH:
@@ -192,6 +192,7 @@ class Game:
         self.sound_playng = False
         self.speed_moviment = .1
         self.text_pw_list = [Float_texts]
+        self.opt = any
     
     def play_sound_volume(self, sound = "", music = "", vol = 1.0):
         if sound:
@@ -203,7 +204,13 @@ class Game:
 
     def draw_menu(self):
         import scripts.screens.menu
-        self.opt = scripts.screens.menu.menu
+        if self.opt != scripts.screens.menu.menu:
+            self.opt = scripts.screens.menu.menu
+        try:
+            self.opt.bg_animation(2, 1, 2)
+        except:
+            print("Sem animação")
+
 
     def call_settings(self):
         if self.status == STATE_MENU or self.status == STATE_GAME_OVER:
@@ -214,22 +221,45 @@ class Game:
     def draw_settings(self):
         if self.status == STATE_SETTINGS:
             import scripts.screens.screen_config
-            self.opt = scripts.screens.screen_config.menu
+            if self.opt != scripts.screens.screen_config.menu:
+                self.opt = scripts.screens.screen_config.menu
         elif self.status == STATE_PAUSED_CONFIG:
             import scripts.screens.config_pause
-            self.opt = scripts.screens.config_pause.menu
+            if self.opt != scripts.screens.config_pause.menu:
+                self.opt = scripts.screens.config_pause.menu
+        try:
+            self.opt.bg_animation(2, 1, 2)
+        except:
+            print("Sem animação")
 
     def draw_pause(self):
         import scripts.screens.pause
-        self.opt = scripts.screens.pause.menu
+        if self.opt != scripts.screens.pause.menu:
+            self.opt = scripts.screens.pause.menu
+        try:
+            self.opt.bg_animation(2, 2, 2)
+        except:
+            print("Sem animação")
     
     def draw_player_select(self):
         import scripts.screens.player_selection
-        self.opt = scripts.screens.player_selection.menu
+        if self.opt != scripts.screens.player_selection.menu:
+            self.opt = scripts.screens.player_selection.menu
+
+        try:
+            self.opt.bg_animation(2)
+        except:
+            print("Sem animação")
+
 
     def draw_controlls(self):
         import scripts.screens.controlls
-        self.opt = scripts.screens.controlls.menu
+        if self.opt != scripts.screens.controlls.menu:
+            self.opt = scripts.screens.controlls.menu
+        try:
+            self.opt.bg_animation(0, 1, 0)
+        except:
+            print("Sem animação")
 
     def resume_game(self):
         self.status = STATE_PLAYING
@@ -425,15 +455,15 @@ class Game:
             ocolor="black",
             owidth=1
         )
-        back_exp_box = box(WIDTH*.8, 5, (0, 0, 0, 100), (0,0,0),1)
+        back_exp_box = Box(WIDTH*.8, 5, (0, 0, 0, 100), (0,0,0),1)
         back_exp_box.draw(screen, (WIDTH*.1, 5))
 
         exp_box = any
         if self.score != 0:
-            exp_box = box(((back_exp_box.rect.width/100) * (self.score % 100)) - 2, 3, (0, 0, 255,150), (0,0,0))
+            exp_box = Box(((back_exp_box.rect.width/100) * (self.score % 100)) - 2, 3, (0, 0, 255,150), (0,0,0))
 
             if self.score % 100 == 0:
-                exp_box = box(back_exp_box.rect.width - 2, 3, (0, 0, 255, 150), (0,0,0))
+                exp_box = Box(back_exp_box.rect.width - 2, 3, (0, 0, 255, 150), (0,0,0))
 
             exp_box.draw(screen, (WIDTH*.1 + 1, 6))
 
@@ -509,7 +539,7 @@ class Game:
                 HEALTH_COLOR,
             )
         if self.tab:
-            box(WIDTH/4, HEIGHT/4, (0,0,0, 128)).draw(screen, (CELL_SIZE,CELL_SIZE))
+            Box(WIDTH/4, HEIGHT/4, (0,0,0, 128)).draw(screen, (CELL_SIZE,CELL_SIZE))
             screen.draw.text(f"Velocidade de ataque: {self.shoot_cooldown}",
                     (CELL_SIZE * 2 , CELL_SIZE * 2),
                     fontsize=FONT_SIZE_ITENS,
@@ -526,13 +556,13 @@ class Game:
                     alpha= 100)
 
         if game.draw_hitbox:
-            box(game.player.hitbox.width, game.player.hitbox.height, (0, 0, 0, 0), (255, 0, 0, 255), 1).draw(screen, (game.player.hitbox.x, game.player.hitbox.y))
+            Box(game.player.hitbox.width, game.player.hitbox.height, (0, 0, 0, 0), (255, 0, 0, 255), 1).draw(screen, (game.player.hitbox.x, game.player.hitbox.y))
             for enemy in game.enemies:
-                box(enemy.hitbox.width, enemy.hitbox.height, (0, 0, 0, 0), (0, 255, 0, 255), 1).draw(screen, (enemy.hitbox.x, enemy.hitbox.y))
+                Box(enemy.hitbox.width, enemy.hitbox.height, (0, 0, 0, 0), (0, 255, 0, 255), 1).draw(screen, (enemy.hitbox.x, enemy.hitbox.y))
             for projectil in game.projectiles:
-                box(projectil.hitbox.width, projectil.hitbox.height, (0, 0, 0, 0), (0, 0, 255, 255), 1).draw(screen, (projectil.hitbox.x, projectil.hitbox.y))
+                Box(projectil.hitbox.width, projectil.hitbox.height, (0, 0, 0, 0), (0, 0, 255, 255), 1).draw(screen, (projectil.hitbox.x, projectil.hitbox.y))
             for pw in game.pw:
-                box(pw.hitbox.width, pw.hitbox.height, (0, 0, 0, 0), (255, 255, 0, 255), 1).draw(screen, (pw.hitbox.x, pw.hitbox.y))
+                Box(pw.hitbox.width, pw.hitbox.height, (0, 0, 0, 0), (255, 255, 0, 255), 1).draw(screen, (pw.hitbox.x, pw.hitbox.y))
 
         img_arrow_cooldown.draw()
         img_skill_cooldown.draw()
@@ -774,7 +804,7 @@ def on_key_down(key):
             game.atack_pressed()
     if key == keys.ESCAPE:
         if game.status == STATE_PLAYING:
-            box(WIDTH, HEIGHT, (0,0,0, 100)).draw(screen, (0,0))
+            Box(WIDTH, HEIGHT, (0,0,0, 100)).draw(screen, (0,0))
             pause_game()
         elif game.status == STATE_PAUSED:
             resume_game()
@@ -806,7 +836,7 @@ def update(dt):
                 game.player.tile.flip_x = MOUSE_POS[0] < game.player.tile.x
             else:
                 dir_sprite = Dir.Directions.DOWN if MOUSE_POS[1] > game.player.tile.y else Dir.Directions.UP
-            game.draw_playing(dt)
+            game.draw_playing(1/FPS)
     else:
         getattr(sounds, "walking").stop()
     

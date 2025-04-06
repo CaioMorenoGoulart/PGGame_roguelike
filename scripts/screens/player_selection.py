@@ -1,5 +1,5 @@
 from scripts.style import *
-from scripts.config import WIDTH, HEIGHT, STATE_PLAYING, STATE_MENU, Actor
+from scripts.config import WIDTH, HEIGHT, STATE_PLAYING, STATE_MENU, FPS, Actor
 from scripts.image_dir import Dir_images, Set_images
 
 class Images_animation:
@@ -13,7 +13,7 @@ class Images_animation:
         self.n_frames = len(self.frames)
     
     def update_frames(self):
-        self.animation_timer += 1/60
+        self.animation_timer += 1/FPS
         if self.animation_timer >= 1/ self.n_frames:
             self.current_frame = (self.current_frame - 1) % len(self.frames)
             self.tile.image = self.frames[self.current_frame]
@@ -64,16 +64,64 @@ class Menu_screen:
             if isinstance(obj, type) and name != "Enemy"
         ]
 
-        self.buttons = auto.characters_boxes(self.characteres, 200, bgc=BG_TEXT_COLOR, bc= FONT_COLOR_BORDER_MENU, b=1, y=100, space= 20, marg=200 ,width=0, bgch= (255,0,0,100), bch= FONT_COLOR_BORDER_HOVER)
-        for buttons in self.buttons:
-             self.images.append(Images_animation(buttons.x + buttons.box_width/2, buttons.y + buttons.box_height/2, Set_images(string= buttons.action.Waiting.Side.dir, n_frames= buttons.action.Waiting.Side.N_FRAMES).images, 4)) 
+        self.buttons = auto.characters_boxes(self.characteres, 200, bgc=BG_TEXT_COLOR, bc= FONT_COLOR_BORDER_MENU, b=10, y=100, space= 20, marg=200 ,width=0, bgch= (255,0,0,100), bch= (255,0,0,255))
+        for i,buttons in enumerate(self.buttons):
+            calc = Set_images(string= buttons.action.Waiting.Side.dir, n_frames= buttons.action.Waiting.Side.N_FRAMES).images
+            actor_calc = Actor(calc[0])
+            scale = min((buttons.box_width-5-(buttons.border * 2))/actor_calc.width, (buttons.box_height-5-(buttons.border * 2))/actor_calc.height)
+            self.images.append(Images_animation(buttons.x + buttons.box_width/2, buttons.y + buttons.box_height/2, calc, scale)) 
 
         self.buttons.extend(auto.listing(self.texts))
 
+        self.grad_boxes = auto.GradientBox(
+                start_color= (150, 0, 0, 200),
+                end_color= (0, 0, 0, 0),
+                mid_color= (0, 0, 0, 0),
+                width=WIDTH,
+                height=HEIGHT,
+                vertical=True
+            )
+        self.loopfinished1 = False
+        self.loopfinished2 = False
+        self.loopfinished3 = False
+
+    def bg_animation(self, speed = 0, speed2 = 0, speed3 = 0):
+
+        if speed > 0:
+            if self.grad_boxes.start_color[3] < 255 and self.loopfinished1 == False:
+                self.grad_boxes.start_color= (self.grad_boxes.start_color[0], self.grad_boxes.start_color[1], self.grad_boxes.start_color[2], min(255,self.grad_boxes.start_color[3] + speed))
+            if self.grad_boxes.start_color[3] == 255:
+                self.loopfinished1 = True
+            if self.grad_boxes.start_color[3] <= 0:
+                self.loopfinished1 = False
+            if self.grad_boxes.start_color[3] > 0 and self.loopfinished1 == True:
+                self.grad_boxes.start_color= (self.grad_boxes.start_color[0], self.grad_boxes.start_color[1], self.grad_boxes.start_color[2], max(0,self.grad_boxes.start_color[3] - speed))
+        if speed2 > 0:
+            if self.grad_boxes.mid_color[3] < 255 and self.loopfinished2 == False:
+                self.grad_boxes.mid_color= (self.grad_boxes.mid_color[0], self.grad_boxes.mid_color[1], self.grad_boxes.mid_color[2], min(255,self.grad_boxes.mid_color[3] + speed2))
+            if self.grad_boxes.mid_color[3] == 255:
+                self.loopfinished2 = True
+            if self.grad_boxes.mid_color[3] <= 0:
+                self.loopfinished2 = False
+            if self.grad_boxes.mid_color[3] > 0 and self.loopfinished2 == True:
+                self.grad_boxes.mid_color= (self.grad_boxes.mid_color[0], self.grad_boxes.mid_color[1], self.grad_boxes.mid_color[2], max(0,self.grad_boxes.mid_color[3] - speed2))
+        if speed3 > 0:
+            if self.grad_boxes.end_color[3] < 255 and self.loopfinished3 == False:
+                self.grad_boxes.end_color= (self.grad_boxes.end_color[0], self.grad_boxes.end_color[1], self.grad_boxes.end_color[2], min(255,self.grad_boxes.end_color[3] + speed3))
+            if self.grad_boxes.end_color[3] == 255:
+                self.loopfinished3 = True
+            if self.grad_boxes.end_color[3] <= 0:
+                self.loopfinished3 = False
+            if self.grad_boxes.end_color[3] > 0 and self.loopfinished3 == True:
+                self.grad_boxes.end_color= (self.grad_boxes.end_color[0], self.grad_boxes.end_color[1], self.grad_boxes.end_color[2], max(0,self.grad_boxes.end_color[3] - speed3))
+        if speed + speed2 + speed3 > 0:
+            self.grad_boxes.create_gradient()
+
     def draw(self, screen, pos, var1 = any, var2 = any):
+        self.grad_boxes.draw(screen)
         self.update(pos)
         for i in self.buttons:
-            i.draw(screen, pos)
+            i.draw(screen, pos, True, .2)
         for i in self.images:
             i.tile.draw()
 

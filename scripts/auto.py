@@ -3,7 +3,7 @@ from scripts.elements import Button
 
 # Caixa com transparencia
 
-class box:
+class Box:
     def __init__(self, width, height, fill_color, border_color = "", border  = 0, border_top = 0, border_rigth  = 0, border_botton  = 0, border_left  = 0, pos =(0, 0)):
         self.rect = Rect( pos[0], pos[1], width, height)
         self.fill_color = fill_color
@@ -35,6 +35,79 @@ class box:
         self.draw_alpha_box(self.rect.width, self.rect.height, self.rect.topleft, screen,  self.fill_color)
         if self.border > 0:
             self.draw_alpha_rect(screen)
+
+class GradientBox:
+    def __init__(self, start_color, end_color, width, height, x = 0, y = 0, mid_color=None, alpha=255, vertical=True):
+        self.x, self.y = x, y
+        self.width, self.height = width, height
+        self.start_color = self._add_alpha(start_color, alpha)
+        self.end_color = self._add_alpha(end_color, alpha)
+        self.mid_color = self._add_alpha(mid_color, alpha) if mid_color else None
+        self.vertical = vertical
+        self.box_list = []
+        self.create_gradient()
+
+    @staticmethod
+    def _add_alpha(color, alpha):
+        return (*color, alpha) if len(color) == 3 else color
+
+    def create_gradient(self):
+        steps = self.height if self.vertical else self.width
+        mid_range = steps // 2
+        self.box_list = []
+        for i in range(steps):
+            if self.mid_color and i < mid_range:
+                color = self._interpolate(self.start_color, self.mid_color, i, mid_range)
+            elif self.mid_color:
+                color = self._interpolate(self.mid_color, self.end_color, i - mid_range, mid_range)
+            else:
+                color = self._interpolate(self.start_color, self.end_color, i, steps)
+
+            pos = (self.x, self.y + i) if self.vertical else (self.x + i, self.y)
+            size = (self.width, 1) if self.vertical else (1, self.height)
+            self.box_list.append(Box(*size, color, pos=pos))
+
+    @staticmethod
+    def _interpolate(color1, color2, step, total_steps):
+        return tuple(color1[j] + (color2[j] - color1[j]) * step // total_steps for j in range(4))
+
+    def draw(self, screen):
+        for box in self.box_list:
+            box.draw(screen)
+    
+    def transition_color(current, target, duration_sec):
+        from scripts.config import FPS
+        total_frames = duration_sec * FPS
+        if total_frames <= 0:
+            return target  # evita divisão por zero
+
+        new_color = []
+        for c, t in zip(current, target):
+            diff = t - c
+            step = diff / total_frames
+            new_value = c + step
+
+            # Arredonda e evita ultrapassar o alvo
+            if diff > 0:
+                new_color.append(min(round(new_value), t))
+            elif diff < 0:
+                new_color.append(max(round(new_value), t))
+            else:
+                new_color.append(t)
+
+        return tuple(new_color)
+
+
+
+
+# class Fade_box:
+#     def __init__(self,color,time):
+
+#     def fade_in():
+
+#     def fade_out():
+    
+        
 
 class Space_betwen:
     def __init__(self, n, height, y, space = 0, marg = 0, width = 0):

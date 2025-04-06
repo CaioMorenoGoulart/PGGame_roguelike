@@ -14,7 +14,7 @@ class Button:
         bgh_color="null",
         width=200,
         height=50,
-        alpha = 1,
+        alpha = 255,
         dir= "center",
         b = 2,
         bc = (0,0,0,100),
@@ -25,37 +25,80 @@ class Button:
         self.y = y
         self.dir = dir
         self.text = text
+        self.text_screen = any
         self.text_size = text_size
-        self.text_color = text_color
-        self.alpha = alpha
-        self.text_hover_color = text_hover_color
+        self.alpha = alpha/255
+        self.text_color = auto.GradientBox._add_alpha(text_color, alpha)
+        self.text_hover_color = auto.GradientBox._add_alpha(text_hover_color, alpha)
         self.action = action
         self.box_width = width
         self.box_height = height
-        self.box_color = bg_color
-        self.box_color_h = bgh_color
+        self.box_color = auto.GradientBox._add_alpha(bg_color, alpha)
+        self.box_color_h = auto.GradientBox._add_alpha(bgh_color, alpha)
         self.border = b
-        self.border_collor = bc
-        self.border_collor_h = bch
+        self.border_collor = auto.GradientBox._add_alpha(bc, alpha)
+        self.border_collor_h = auto.GradientBox._add_alpha(bch, alpha)
         self.selected = False
         self.block = block
+        self.box = any
 
-    def draw(self, screen, mouse_pos):
+    def draw(self, screen, mouse_pos, animate = False, speed = 0):
         if self.box_color != "null":
+            if animate and speed > 0:
+                try:
+                    if self.box.fill_color:
+                        self.box = auto.Box(self.box_width, self.box_height, auto.GradientBox.transition_color(self.box.fill_color, self.box_color, speed) if animate else self.box_color, auto.GradientBox.transition_color(self.box.border_color, self.border_collor, speed) if animate else self.border_collor, self.border)
+                    elif self.box_color_h == "null":
+                        self.box = auto.Box(self.box_width, self.box_height, self.box_color, self.border_collor, self.border)
+
+
             if not self.is_hovered(mouse_pos) and self.selected == False or self.box_color_h == "null":
-                auto.box(self.box_width, self.box_height, self.box_color, self.border_collor, self.border).draw(screen, (self.x, self.y))
+                try: 
+                    if self.box.fill_color:
+                        self.box = auto.Box(self.box_width, self.box_height, auto.GradientBox.transition_color(self.box.fill_color, self.box_color, speed) if animate else self.box_color, auto.GradientBox.transition_color(self.box.border_color, self.border_collor, speed) if animate else self.border_collor, self.border)
+                    elif self.box_color_h == "null":
+                        self.box = auto.Box(self.box_width, self.box_height, self.box_color, self.border_collor, self.border)
+                except:
+                    self.box = auto.Box(self.box_width, self.box_height, self.box_color, self.border_collor, self.border)
             else:
-                auto.box(self.box_width, self.box_height, self.box_color_h, self.border_collor_h, self.border).draw(screen, (self.x, self.y))
+                self.box = auto.Box(self.box_width, self.box_height, auto.GradientBox.transition_color(self.box.fill_color, self.box_color_h, speed) if animate else self.box_color_h, auto.GradientBox.transition_color(self.box.border_color, self.border_collor_h, speed) if animate else self.border_collor_h, self.border)
+            self.box.draw(screen, (self.x, self.y))
+
+
+        try:
+            if not self.is_hovered(mouse_pos):
+                self.text_screen = (
+                    self.text,
+                    (self.x + self.box_width // 2, self.y + self.box_height // 2),
+                    self.text_size,
+                    (auto.GradientBox.transition_color(self.text_screen[4], self.text_color, speed))[3]/255 if animate else (self.text_color[3])/255,
+                    auto.GradientBox.transition_color(self.text_screen[4], self.text_color, speed) if animate else self.text_color,
+                    self.dir,
+                )
+            else:
+                self.text_screen = (
+                    self.text,
+                    (self.x + self.box_width // 2, self.y + self.box_height // 2),
+                    self.text_size,
+                    (auto.GradientBox.transition_color(self.text_screen[4], self.text_hover_color, speed))[3]/255 if animate else (self.text_hover_color[3])/255,
+                    auto.GradientBox.transition_color(self.text_screen[4], self.text_hover_color, speed) if animate else self.text_hover_color,
+                    self.dir,
+                )
+        except:
+            self.text_screen = (
+                self.text, (self.x + self.box_width // 2, self.y + self.box_height // 2),
+                self.text_size, (self.text_hover_color[3]/255) if self.is_hovered(mouse_pos) else (self.text_color[3]/255), (self.text_hover_color if self.is_hovered(mouse_pos) else self.text_color),
+                self.dir
+            )
             
+
         screen.draw.text(
-            self.text,
-            center = (self.x + self.box_width // 2, self.y + self.box_height // 2),
-            fontsize=self.text_size,
-            alpha=self.alpha,
-            color=(
-                self.text_hover_color if self.is_hovered(mouse_pos) else self.text_color
-            ),
-            align=self.dir
+            self.text_screen[0],
+            center = self.text_screen[1],
+            fontsize= self.text_screen[2],
+            alpha=self.text_screen[3],
+            color= self.text_screen[4],
+            align= self.text_screen[5]
         )
 
     def is_hovered(self, mouse_pos):
@@ -79,7 +122,7 @@ class Slider:
         self.indicator_radius = 10
 
     def draw(self, screen):
-        auto.box(self.screen_width, self.screen_height, (100, 100, 100)).draw(screen, (self.x, self.y))
+        auto.Box(self.screen_width, self.screen_height, (100, 100, 100)).draw(screen, (self.x, self.y))
 
         indicator_position = self.x + int(self.value * self.screen_width)
         screen.draw.filled_circle(
@@ -131,7 +174,7 @@ class Dropdown:
 
         if self.open:
             for i, option in enumerate(self.options):
-                auto.box(self.screen_width, self.screen_height, (70, 70, 70)).draw(screen, (self.x, self.y_open + (i + 1) * self.screen_height))
+                auto.Box(self.screen_width, self.screen_height, (70, 70, 70)).draw(screen, (self.x, self.y_open + (i + 1) * self.screen_height))
                 screen.draw.text(
                     option,
                     center=(
@@ -146,7 +189,7 @@ class Dropdown:
                     ),
                 )
 
-        auto.box(self.screen_width, self.screen_height, (70, 70, 70)).draw(screen, (self.x, self.y))
+        auto.Box(self.screen_width, self.screen_height, (70, 70, 70)).draw(screen, (self.x, self.y))
         screen.draw.text(
             self.options[self.selected_option],
             center=(self.x + self.screen_width // 2, self.y + self.screen_height // 2),

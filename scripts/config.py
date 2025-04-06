@@ -60,6 +60,7 @@ CONFIG = load_settings()
 SCAL = 2
 CELL_SIZE = Actor("textures/stone_tile_1", (0, 0), (0, 0)).height * SCAL
 RESOLUTION_OPTIONS = ["800x600", "1024x768", "1280x720"]
+FPS = 60
 SCRENN_OPT = CONFIG["screen_opt"]
 RESOLUTION = RESOLUTION_OPTIONS[SCRENN_OPT].split("x")
 MUSIC_VOL = CONFIG["music_volume"]
