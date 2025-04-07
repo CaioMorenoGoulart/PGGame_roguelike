@@ -194,6 +194,13 @@ class Game:
         self.text_pw_list = [Float_texts]
         self.opt = any
     
+    def bg_animation(self, speed1 = 0, speed2 = 0, speed3 = 0):
+        if hasattr(self.opt, "bg_animation"):
+            self.opt.bg_animation(speed1, speed2, speed3)
+        # else:
+        #     print("Sem animação")
+        
+
     def play_sound_volume(self, sound = "", music = "", vol = 1.0):
         if sound:
             getattr(sounds, sound).set_volume(EFFECT_VOL * vol)
@@ -206,10 +213,7 @@ class Game:
         import scripts.screens.menu
         if self.opt != scripts.screens.menu.menu:
             self.opt = scripts.screens.menu.menu
-        try:
-            self.opt.bg_animation(2, 1, 2)
-        except:
-            print("Sem animação")
+        self.bg_animation(2,1,2)
 
 
     def call_settings(self):
@@ -227,39 +231,26 @@ class Game:
             import scripts.screens.config_pause
             if self.opt != scripts.screens.config_pause.menu:
                 self.opt = scripts.screens.config_pause.menu
-        try:
-            self.opt.bg_animation(2, 1, 2)
-        except:
-            print("Sem animação")
+        self.bg_animation(2,1,2)
 
     def draw_pause(self):
         import scripts.screens.pause
         if self.opt != scripts.screens.pause.menu:
             self.opt = scripts.screens.pause.menu
-        try:
-            self.opt.bg_animation(2, 2, 2)
-        except:
-            print("Sem animação")
+        self.bg_animation(2,2,2)
     
     def draw_player_select(self):
         import scripts.screens.player_selection
         if self.opt != scripts.screens.player_selection.menu:
             self.opt = scripts.screens.player_selection.menu
-
-        try:
-            self.opt.bg_animation(2)
-        except:
-            print("Sem animação")
+        self.bg_animation(2)
 
 
     def draw_controlls(self):
         import scripts.screens.controlls
         if self.opt != scripts.screens.controlls.menu:
             self.opt = scripts.screens.controlls.menu
-        try:
-            self.opt.bg_animation(0, 1, 0)
-        except:
-            print("Sem animação")
+        self.bg_animation(0,1)
 
     def resume_game(self):
         self.status = STATE_PLAYING
@@ -467,9 +458,6 @@ class Game:
 
             exp_box.draw(screen, (WIDTH*.1 + 1, 6))
 
-            
-
-        
         screen.draw.text(
             f"Tempo de jogo: {time_format(self.total_time)}",
             right = WIDTH - 5,
@@ -610,7 +598,6 @@ class Game:
             elif (keyboard.DOWN or keyboard.S):
                 self.player.move(0, move_pixel)
 
-        
         if self.charging:
             getattr(sounds, "walking").stop()
 
@@ -682,8 +669,6 @@ class Game:
             
             for pw in self.text_pw_list:
                 pw.update(dt)
-            
-            # self.spawn_pw()
 
             self.keybord_press()
             self.check_player_pw_collision()
@@ -733,7 +718,7 @@ def actions(action):
     elif any(
     obj == action
     for obj in Dir_images.Characters.Player.__dict__.values()
-    if isinstance(obj, type)  # Garante que é uma classe
+    if isinstance(obj, type)
     ):        
         game.player_selected = action
 
@@ -867,6 +852,6 @@ def draw():
         game.mapa.draw()
         game.draw_player()
         game.draw_hud()
-# Inicialização rápida do jogo
+
 game = Game()
 pgzrun.go()

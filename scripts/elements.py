@@ -25,7 +25,7 @@ class Button:
         self.y = y
         self.dir = dir
         self.text = text
-        self.text_screen = any
+        self.text_screen = (0,0)
         self.text_size = text_size
         self.alpha = alpha/255
         self.text_color = auto.GradientBox._add_alpha(text_color, alpha)
@@ -42,56 +42,42 @@ class Button:
         self.block = block
         self.box = any
 
-    def draw(self, screen, mouse_pos, animate = False, speed = 0):
+    def draw(self, screen, mouse_pos, animate=False, speed=0):
+        hover = self.is_hovered(mouse_pos)
+        selected_or_hover = hover or self.selected
+        def apply_transition(current, target):
+            return auto.GradientBox.transition_color(current, target, speed) if animate or speed > 0 else target
         if self.box_color != "null":
-            if animate and speed > 0:
-                try:
-                    if self.box.fill_color:
-                        self.box = auto.Box(self.box_width, self.box_height, auto.GradientBox.transition_color(self.box.fill_color, self.box_color, speed) if animate else self.box_color, auto.GradientBox.transition_color(self.box.border_color, self.border_collor, speed) if animate else self.border_collor, self.border)
-                    elif self.box_color_h == "null":
-                        self.box = auto.Box(self.box_width, self.box_height, self.box_color, self.border_collor, self.border)
-
-
-            if not self.is_hovered(mouse_pos) and self.selected == False or self.box_color_h == "null":
-                try: 
-                    if self.box.fill_color:
-                        self.box = auto.Box(self.box_width, self.box_height, auto.GradientBox.transition_color(self.box.fill_color, self.box_color, speed) if animate else self.box_color, auto.GradientBox.transition_color(self.box.border_color, self.border_collor, speed) if animate else self.border_collor, self.border)
-                    elif self.box_color_h == "null":
-                        self.box = auto.Box(self.box_width, self.box_height, self.box_color, self.border_collor, self.border)
-                except:
-                    self.box = auto.Box(self.box_width, self.box_height, self.box_color, self.border_collor, self.border)
+            if not hasattr(self, "box") or not hasattr(self.box, "fill_color"):
+                self.box = auto.Box(self.box_width, self.box_height, self.box_color, self.border_collor, self.border)
+            if self.box_color_h != "null":
+                self.box.fill_color = apply_transition(self.box.fill_color, self.box_color_h if selected_or_hover else self.box_color)
+                self.box.border_color = apply_transition(self.box.border_color, self.border_collor_h if selected_or_hover else self.border_collor)
             else:
-                self.box = auto.Box(self.box_width, self.box_height, auto.GradientBox.transition_color(self.box.fill_color, self.box_color_h, speed) if animate else self.box_color_h, auto.GradientBox.transition_color(self.box.border_color, self.border_collor_h, speed) if animate else self.border_collor_h, self.border)
+                self.box.fill_color = self.box_color
+                self.box.border_color = self.border_collor
+
             self.box.draw(screen, (self.x, self.y))
 
-
-        try:
-            if not self.is_hovered(mouse_pos):
-                self.text_screen = (
-                    self.text,
-                    (self.x + self.box_width // 2, self.y + self.box_height // 2),
-                    self.text_size,
-                    (auto.GradientBox.transition_color(self.text_screen[4], self.text_color, speed))[3]/255 if animate else (self.text_color[3])/255,
-                    auto.GradientBox.transition_color(self.text_screen[4], self.text_color, speed) if animate else self.text_color,
-                    self.dir,
-                )
-            else:
-                self.text_screen = (
-                    self.text,
-                    (self.x + self.box_width // 2, self.y + self.box_height // 2),
-                    self.text_size,
-                    (auto.GradientBox.transition_color(self.text_screen[4], self.text_hover_color, speed))[3]/255 if animate else (self.text_hover_color[3])/255,
-                    auto.GradientBox.transition_color(self.text_screen[4], self.text_hover_color, speed) if animate else self.text_hover_color,
-                    self.dir,
-                )
-        except:
+        text_center = (self.x + self.box_width // 2, self.y + self.box_height // 2)
+        text_color = (self.text_hover_color if hover else self.text_color)
+        text_alpha = text_color[3]/255
+        if len(self.text_screen) < 5 :
             self.text_screen = (
-                self.text, (self.x + self.box_width // 2, self.y + self.box_height // 2),
-                self.text_size, (self.text_hover_color[3]/255) if self.is_hovered(mouse_pos) else (self.text_color[3]/255), (self.text_hover_color if self.is_hovered(mouse_pos) else self.text_color),
+                self.text, text_center,
+                self.text_size, text_alpha, text_color,
                 self.dir
             )
-            
-
+        else:
+            grad = apply_transition(self.text_screen[4], text_color)
+            self.text_screen = (
+                self.text,
+                text_center,
+                self.text_size,
+                grad[3]/255 if len(grad) == 4 else 1,
+                grad,
+                self.dir,
+            )
         screen.draw.text(
             self.text_screen[0],
             center = self.text_screen[1],

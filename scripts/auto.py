@@ -144,7 +144,39 @@ class Space_betwen:
             self.positions_x.append(self.marg if i == 0 else self.positions_x[i-1] + self.space + self.width)
 
 
-    
+def bg_animation(self, speed=0, speed2=0, speed3=0):
+    transitions = [
+        {"color": "start_color", "speed": speed,  "flag": "loopfinished1"},
+        {"color": "mid_color",   "speed": speed2, "flag": "loopfinished2"},
+        {"color": "end_color",   "speed": speed3, "flag": "loopfinished3"},
+    ]
+
+    for transition in transitions:
+        speed = transition["speed"]
+        if speed <= 0:
+            continue
+
+        attr = transition["color"]
+        flag_attr = transition["flag"]
+
+        color = getattr(self.grad_boxes, attr)
+        alpha = color[3]
+        loop_finished = getattr(self, flag_attr)
+
+        if alpha < 255 and not loop_finished:
+            alpha = min(255, alpha + speed)
+        elif alpha == 255:
+            setattr(self, flag_attr, True)
+        elif alpha <= 0:
+            setattr(self, flag_attr, False)
+
+        if alpha > 0 and getattr(self, flag_attr):
+            alpha = max(0, alpha - speed)
+
+        setattr(self.grad_boxes, attr, (*color[:3], alpha))
+
+    if any(t["speed"] > 0 for t in transitions):
+        self.grad_boxes.create_gradient()
 
 def characters_boxes(caracters, height, bgc, bc, b, y, space = 0, marg = 0, width = 0, bgch = (0,0,0,0), bch = (0,0,0,0)):
 

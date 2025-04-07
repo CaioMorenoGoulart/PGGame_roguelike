@@ -12,7 +12,7 @@ class Menu_screen:
                     "Color": FONT_COLOR_MENU,
                     "Color_Hover": FONT_COLOR_MENU,
                     "Border": 0,
-                    "Border_Color": "",
+                    "Border_Color": (0,0,0,0),
                     "Border_Color_HOVER": (0,0,0,0),
                     "BG_Color": (0,0,0,0),
                     "Pos": (WIDTH // 2 - 100, HEIGHT // 2 - 50),
@@ -68,38 +68,9 @@ class Menu_screen:
         self.loopfinished2 = False
         self.loopfinished3 = False
 
-    def bg_animation(self, speed = 0, speed2 = 0, speed3 = 0):
-
-        if speed > 0:
-            if self.grad_boxes.start_color[3] < 255 and self.loopfinished1 == False:
-                self.grad_boxes.start_color= (self.grad_boxes.start_color[0], self.grad_boxes.start_color[1], self.grad_boxes.start_color[2], min(255,self.grad_boxes.start_color[3] + speed))
-            if self.grad_boxes.start_color[3] == 255:
-                self.loopfinished1 = True
-            if self.grad_boxes.start_color[3] <= 0:
-                self.loopfinished1 = False
-            if self.grad_boxes.start_color[3] > 0 and self.loopfinished1 == True:
-                self.grad_boxes.start_color= (self.grad_boxes.start_color[0], self.grad_boxes.start_color[1], self.grad_boxes.start_color[2], max(0,self.grad_boxes.start_color[3] - speed))
-        if speed2 > 0:
-            if self.grad_boxes.mid_color[3] < 255 and self.loopfinished2 == False:
-                self.grad_boxes.mid_color= (self.grad_boxes.mid_color[0], self.grad_boxes.mid_color[1], self.grad_boxes.mid_color[2], min(255,self.grad_boxes.mid_color[3] + speed2))
-            if self.grad_boxes.mid_color[3] == 255:
-                self.loopfinished2 = True
-            if self.grad_boxes.mid_color[3] <= 0:
-                self.loopfinished2 = False
-            if self.grad_boxes.mid_color[3] > 0 and self.loopfinished2 == True:
-                self.grad_boxes.mid_color= (self.grad_boxes.mid_color[0], self.grad_boxes.mid_color[1], self.grad_boxes.mid_color[2], max(0,self.grad_boxes.mid_color[3] - speed2))
-        if speed3 > 0:
-            if self.grad_boxes.end_color[3] < 255 and self.loopfinished3 == False:
-                self.grad_boxes.end_color= (self.grad_boxes.end_color[0], self.grad_boxes.end_color[1], self.grad_boxes.end_color[2], min(255,self.grad_boxes.end_color[3] + speed3))
-            if self.grad_boxes.end_color[3] == 255:
-                self.loopfinished3 = True
-            if self.grad_boxes.end_color[3] <= 0:
-                self.loopfinished3 = False
-            if self.grad_boxes.end_color[3] > 0 and self.loopfinished3 == True:
-                self.grad_boxes.end_color= (self.grad_boxes.end_color[0], self.grad_boxes.end_color[1], self.grad_boxes.end_color[2], max(0,self.grad_boxes.end_color[3] - speed3))
-
-        if speed + speed2 + speed3 > 0:
-            self.grad_boxes.create_gradient()
+    def bg_animation(self, speed=0, speed2=0, speed3=0):
+        import scripts.auto as auto
+        auto.bg_animation(self, speed, speed2, speed3)
 
     def draw(self, screen, pos, var1 = any, var2 = any):
         self.grad_boxes.draw(screen)
