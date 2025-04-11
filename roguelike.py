@@ -20,7 +20,6 @@ class Power_ups:
         self.n_frames = len(self.frames)
         self.tile.pos = (x, y)
         self.update_frames(1/FPS)
-        right_hitbox(self)
     def pick_up(self):
         if self.tipe == PW_HEALTH:
             if game.player_health < 200:
@@ -36,7 +35,11 @@ class Power_ups:
             game.play_sound_volume(sound="gem",vol=.5)
         
     def draw(self):
-        self.tile.draw()
+        original_pos = self.tile.pos
+        self.tile.pos = (self.tile.x - game.camera.x, self.tile.y - game.camera.y)
+        right_hitbox(self)
+        self.tile.draw()            
+        self.tile.pos = original_pos 
         
     def set_frames(self):
         if self.tipe == PW_HEALTH:
@@ -67,6 +70,17 @@ class Power_ups:
             self.tile.scale = self.scale
             self.animation_timer = 0
 
+class Camera:
+    def __init__(self):
+        self.pos = (0,0)
+        self.x = 0
+        self.y = 0
+
+    def update_pos(self, x, y):
+        self.x += x
+        self.y += y
+        self.pos = (self.x, self.y)
+
 # Classe Entidade
 class Entity:
     def __init__(self, x, y, frames, scale=1):
@@ -82,8 +96,11 @@ class Entity:
         right_hitbox(self)
 
     def draw(self):
+        original_pos = self.tile.pos
+        self.tile.pos = (self.tile.x - game.camera.x, self.tile.y - game.camera.y)
         right_hitbox(self)
-        self.tile.draw()
+        self.tile.draw()            
+        self.tile.pos = original_pos 
 
     def update_frames(self, charging=False):
         right_hitbox(self)
@@ -110,6 +127,7 @@ class Entity:
                     animate(self.tile, pos=pos, duration=0.05)
                     self.animation = True
                 else:
+                    game.camera.update_pos(x * CELL_SIZE, y * CELL_SIZE)
                     if game.player_skill_timer == 0:
                         animate(self.tile, pos=pos, duration=0.1)
                     else:
@@ -147,7 +165,10 @@ class Projectile:
         self.hitbox.inflate_ip(-2, -2)
 
     def draw(self):
-        self.tile.draw()
+        original_pos = self.tile.pos
+        self.tile.pos = (self.tile.x - game.camera.x, self.tile.y - game.camera.y)
+        self.tile.draw()            
+        self.tile.pos = original_pos 
 
     def hit(self, dt):
         self.speed = 0
@@ -289,6 +310,7 @@ class Game:
         self.exp = []
         self.player = Entity(WIDTH // 2, HEIGHT // 2, self.player_selected.Waiting.Down.images)
         self.player.tile.pos = (WIDTH / 2 - self.player.tile.width, HEIGHT / 2 - self.player.tile.height)
+        self.camera = Camera()
         self.time_elapsed = 0
         self.shoot_cooldown = 1
         self.speed_moviment = .1
@@ -311,8 +333,8 @@ class Game:
 
 
     def shoot_projectile(self, mouse_pos):
-        direction_x = mouse_pos[0] - self.player.tile.x
-        direction_y = mouse_pos[1] - self.player.tile.y
+        direction_x = mouse_pos[0] + game.camera.x - self.player.tile.x
+        direction_y = mouse_pos[1] + game.camera.y - self.player.tile.y
         magnitude = math.sqrt(direction_x ** 2 + direction_y ** 2)
         if magnitude == 0:
             return
@@ -476,7 +498,7 @@ class Game:
             owidth=1
         )
         for pw in self.text_pw_list:
-            pw.draw(screen)
+            pw.draw(screen, self.camera)
             if pw.time >= 2: 
                 self.text_pw_list.remove(pw)
 
@@ -561,8 +583,8 @@ class Game:
             move_pixel = 0
         else:
             move_pixel = self.speed_moviment
-        dx = MOUSE_POS[0] - self.player.tile.x
-        dy = MOUSE_POS[1] - self.player.tile.y
+        dx = MOUSE_POS[0] + game.camera.x - self.player.tile.x
+        dy = MOUSE_POS[1] + game.camera.y - self.player.tile.y
         magnitude = math.sqrt(dx**2 + dy**2)
         if magnitude > 0:
             dx /= magnitude
@@ -849,7 +871,7 @@ def draw():
     game.opt.draw(screen, MOUSE_POS, var1, var2)
 
     if game.status == STATE_PLAYING:
-        game.mapa.draw()
+        game.mapa.draw(game.camera)
         game.draw_player()
         game.draw_hud()
 

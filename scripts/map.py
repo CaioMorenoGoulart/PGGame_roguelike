@@ -1,17 +1,23 @@
 from scripts.config import CELL_SIZE, ROWS, COLUMNS, SCAL, Actor, random
 from scripts.image_dir import Set_images, Dir_images
 
+Map_heigth = (ROWS*2,COLUMNS*2)
+
 # Criação do Mapa
 class Map:
     def __init__(self):
         self.MAP = []
-        for row in range(ROWS):
-            if row == 0 or row == ROWS - 1:
-                self.MAP.append([1] * COLUMNS)
+        # self.world_pos = (0,0)
+        for row in range(Map_heigth[0]):
+            if row == 0 or row == Map_heigth[0] - 1:
+                self.MAP.append([1] * Map_heigth[1])
             else:
-                self.MAP.append([1] + [random.choices([0, 1], weights=[0.99, 0.01])[0] for _ in range(COLUMNS - 2)] + [1])
-
+                self.MAP.append([1] + [random.choices([0, 1], weights=[0.99, 0.01])[0] for _ in range(Map_heigth[1] - 2)] + [1])
     # Randomizar grama
+
+    # def update_world_pos(self, x, y):
+    #     self.world_pos = [self.world_pos[0] + x, self.world_pos[1] + y]
+
     def get_random_grass(self):
         grass_tile = Actor(random.choice(Set_images(string = Dir_images.Textures.dir + "grass_tile_", n_frames = 4).images), (0, 0), (0, 0))
         grass_tile.scale = SCAL
@@ -45,6 +51,9 @@ class Map:
                     return False
         return True
 
-    def draw(self):
+    def draw(self, cam):
         for tile in self.map_tiles:
-            tile.draw()
+            original_pos = tile.pos
+            tile.pos = (tile.x - cam.x, tile.y - cam.y)
+            tile.draw()            
+            tile.pos = original_pos 
