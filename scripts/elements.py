@@ -239,7 +239,7 @@ class Float_texts:
     def draw(self, screen, cam):
         if self.time < self.draw_time: 
             screen.draw.text(self.text,
-                midbottom =(self.x + cam.x, self.y + cam.y),
+                midbottom =(self.x - cam.x, self.y - cam.y),
                 fontsize=self.font_size,
                 color=self.color,
                 ocolor=self.bcolor,

@@ -20,6 +20,7 @@ class Power_ups:
         self.n_frames = len(self.frames)
         self.tile.pos = (x, y)
         self.update_frames(1/FPS)
+        right_hitbox(self)
     def pick_up(self):
         if self.tipe == PW_HEALTH:
             if game.player_health < 200:
@@ -145,7 +146,9 @@ class Projectile:
         self.initial_speed = 10
         self.speed = min(max(game.charging_time * self.initial_speed, 4), 20)
         right_hitbox(self)
-        self.hitbox.inflate_ip(-5, -5)
+        self.hitbox.inflate_ip(-2, -2)
+        if self.hitbox.width < 1: self.hitbox.width = 1
+        if self.hitbox.height < 1: self.hitbox.height = 1
 
     def update(self, dt):
         self.shoot_spawn_cooldown += dt
@@ -167,6 +170,7 @@ class Projectile:
     def draw(self):
         original_pos = self.tile.pos
         self.tile.pos = (self.tile.x - game.camera.x, self.tile.y - game.camera.y)
+        right_hitbox(self)
         self.tile.draw()            
         self.tile.pos = original_pos 
 
@@ -514,9 +518,9 @@ class Game:
             Rect(210, HEIGHT - 30, (self.player_health - 100) * 2, 20),
             [0,0,255],
         )
-
-        x = (self.player.tile.x - CELL_SIZE/2)
-        y = (self.player.tile.y + CELL_SIZE/2) + 3
+        
+        x = (self.player.hitbox.x - self.player.hitbox.width / 2 + 16)
+        y = (self.player.hitbox.y + self.player.hitbox.height) + 3
 
         screen.draw.filled_rect(
             Rect(x-1, y-1, 32, 8),
@@ -565,13 +569,13 @@ class Game:
                     owidth=2,
                     alpha= 100)
 
-        if game.draw_hitbox:
-            Box(game.player.hitbox.width, game.player.hitbox.height, (0, 0, 0, 0), (255, 0, 0, 255), 1).draw(screen, (game.player.hitbox.x, game.player.hitbox.y))
-            for enemy in game.enemies:
+        if self.draw_hitbox:
+            Box(self.player.hitbox.width, self.player.hitbox.height, (0, 0, 0, 0), (255, 0, 0, 255), 1).draw(screen, (self.player.hitbox.x, self.player.hitbox.y))
+            for enemy in self.enemies:
                 Box(enemy.hitbox.width, enemy.hitbox.height, (0, 0, 0, 0), (0, 255, 0, 255), 1).draw(screen, (enemy.hitbox.x, enemy.hitbox.y))
-            for projectil in game.projectiles:
+            for projectil in self.projectiles:
                 Box(projectil.hitbox.width, projectil.hitbox.height, (0, 0, 0, 0), (0, 0, 255, 255), 1).draw(screen, (projectil.hitbox.x, projectil.hitbox.y))
-            for pw in game.pw:
+            for pw in self.pw:
                 Box(pw.hitbox.width, pw.hitbox.height, (0, 0, 0, 0), (255, 255, 0, 255), 1).draw(screen, (pw.hitbox.x, pw.hitbox.y))
 
         img_arrow_cooldown.draw()
@@ -708,8 +712,6 @@ class Game:
             if self.projectiles[len(self.projectiles) - 1].shoot_spawn_cooldown > self.shoot_cooldown:
                 self.animation = True
                 self.charging = True
-                self.set_player_frames(Player(self.player_selected._dir , self.player_selected.dir_, Dir.Actions.ATTACK, dir_sprite).images, Player(self.player_selected._dir , self.player_selected.dir_, Dir.Actions.ATTACK, dir_sprite).animation_time)
-                self.charging_time = 0
                 self.play_sound_volume(ARROW_SOUDS[0])
         else:
             self.animation = True
@@ -871,6 +873,7 @@ def draw():
     game.opt.draw(screen, MOUSE_POS, var1, var2)
 
     if game.status == STATE_PLAYING:
+        screen.clear()
         game.mapa.draw(game.camera)
         game.draw_player()
         game.draw_hud()
