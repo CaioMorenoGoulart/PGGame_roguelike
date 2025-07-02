@@ -839,12 +839,12 @@ def update(dt):
     global dir_sprite, horizontal
     if game.status == STATE_PLAYING:
         if not game.freeze_mode:
-            horizontal = abs(MOUSE_POS[0] - game.player.tile.x) > abs(MOUSE_POS[1] - game.player.tile.y)
+            horizontal = abs(MOUSE_POS[0] - WIDTH/2) > abs(MOUSE_POS[1] - HEIGHT/2)
+            game.player.tile.flip_x = MOUSE_POS[0] < WIDTH/2
             if horizontal:
                 dir_sprite = Dir.Directions.SIDE
-                game.player.tile.flip_x = MOUSE_POS[0] < game.player.tile.x
             else:
-                dir_sprite = Dir.Directions.DOWN if MOUSE_POS[1] > game.player.tile.y else Dir.Directions.UP
+                dir_sprite = Dir.Directions.DOWN if MOUSE_POS[1] > HEIGHT/2 else Dir.Directions.UP
             game.draw_playing(1/FPS)
     else:
         getattr(sounds, "walking").stop()
